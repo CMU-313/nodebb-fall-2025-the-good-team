@@ -48,6 +48,7 @@ module.exports = function (User) {
 			userslug: data.userslug,
 			joindate: timestamp,
 			lastonline: timestamp,
+			role: data.role || 'user',
 			status: 'online',
 		};
 		['picture', 'fullname', 'birthday'].forEach((field) => {
