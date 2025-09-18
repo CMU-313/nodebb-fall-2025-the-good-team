@@ -1,4 +1,3 @@
-
 'use strict';
 
 const _ = require('lodash');
@@ -35,6 +34,7 @@ module.exports = function (Topics) {
 			lastposttime: 0,
 			postcount: 0,
 			viewcount: 0,
+			visibility: Array.isArray(data.visibility) ? data.visibility.join(',') : (data.visibility || 'everyone'),
 		};
 
 		if (Array.isArray(data.tags) && data.tags.length) {
@@ -126,6 +126,8 @@ module.exports = function (Topics) {
 		postData.tid = tid;
 		postData.ip = data.req ? data.req.ip : null;
 		postData.isMain = true;
+		// Pass visibility to post
+		postData.visibility = data.visibility;
 		postData = await posts.create(postData);
 		postData = await onNewPost(postData, data);
 
@@ -206,6 +208,11 @@ module.exports = function (Topics) {
 		}
 
 		data.ip = data.req ? data.req.ip : null;
+		// For replies, inherit topic visibility if not set
+		if (!data.visibility) {
+			const topicData = await Topics.getTopicData(data.tid);
+			data.visibility = topicData.visibility;
+		}
 		let postData = await posts.create(data);
 		postData = await onNewPost(postData, data);
 

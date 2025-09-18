@@ -40,7 +40,7 @@
 							</div>
 						</div>
 						<div class="mb-2 d-flex flex-column gap-2">
-							<label for="role">[[register:role]]</label>
+							<label for="role">[[register:Role]]</label>
 							<select id="role" name="role" class="form-select">
 								<option value="student">Student</option>
 								<option value="instructor">Instructor</option>
