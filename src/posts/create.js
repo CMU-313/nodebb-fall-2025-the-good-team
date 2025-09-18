@@ -30,11 +30,6 @@ module.exports = function (Posts) {
 		const pid = data.pid || await db.incrObjectField('global', 'nextPid');
 		let postData = { pid, uid, tid, content, sourceContent, timestamp };
 
-		if (data.visibility) {
-			postData.visibility = data.visibility;
-		} else {
-			postData.visibility = 'everyone'; // default value
-		}
 		if (data.toPid) {
 			postData.toPid = data.toPid;
 		}
