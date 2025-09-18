@@ -59,9 +59,9 @@
 			class="form-select form-select-sm"
 			component="composer/visibility"
 			aria-label="[[topic:composer.visibility]]">
-			<option value="everyone">[[topic:composer.visibility-everyone]]</option>
-			<option value="all_instructors">[[topic:composer.visibility-all-instructors]]</option>
-			<option value="specific_instructors">[[topic:composer.visibility-specific-instructors]]</option>
+			<option value="everyone">Everyone</option>
+			<option value="all_instructors">All Instructors</option>
+			<option value="specific_instructors">Specific Instructors…</option>
 		</select>
 		</li>
 		{{{ end }}}

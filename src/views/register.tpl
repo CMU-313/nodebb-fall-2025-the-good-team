@@ -44,7 +44,6 @@
 							<select id="role" name="role" class="form-select">
 								<option value="student">Student</option>
 								<option value="instructor">Instructor</option>
-								<option value="ta">TA</option>
 							</select>
 						</div>
 						{{{ each regFormEntry }}}

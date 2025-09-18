@@ -98,6 +98,7 @@
         "nconf": "0.13.0",
         "nodebb-plugin-2factor": "7.5.10",
         "nodebb-plugin-composer-default": "file:./plugins/nodebb-plugin-composer-default",
+        "nodebb-plugin-role-groups": "file:./plugins/nodebb-plugin-role-groups",
         "nodebb-plugin-dbsearch": "6.2.19",
         "nodebb-plugin-emoji": "6.0.2",
         "nodebb-plugin-emoji-android": "4.1.1",

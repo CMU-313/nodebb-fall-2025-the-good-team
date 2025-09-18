@@ -43,12 +43,17 @@ module.exports = function (User) {
 	async function create(data) {
 		const timestamp = data.timestamp || Date.now();
 
+		const ALLOWED_ROLES = new Set(['student', 'instructor']);
+		const role = (typeof data.role === 'string' && ALLOWED_ROLES.has(data.role.toLowerCase()))
+			? data.role.toLowerCase()
+			: 'student';
+
 		let userData = {
 			username: data.username,
 			userslug: data.userslug,
 			joindate: timestamp,
 			lastonline: timestamp,
-			role: data.role || 'user',
+			role,                 // store canonical role
 			status: 'online',
 		};
 		['picture', 'fullname', 'birthday'].forEach((field) => {
@@ -94,11 +99,19 @@ module.exports = function (User) {
 			bulkAdd.push(['fullname:sorted', 0, `${userData.fullname.toLowerCase()}:${userData.uid}`]);
 		}
 
+
+		const joins = ['registered-users', 'unverified-users'];
+		if (userData.role === 'instructor') {
+		joins.push('instructors');
+		} else {
+		joins.push('students');
+		}
+
 		await Promise.all([
 			db.incrObjectField('global', 'userCount'),
 			analytics.increment('registrations'),
 			db.sortedSetAddBulk(bulkAdd),
-			groups.join(['registered-users', 'unverified-users'], userData.uid),
+			groups.join(joins, userData.uid), 
 			User.notifications.sendWelcomeNotification(userData.uid),
 			storePassword(userData.uid, data.password),
 			User.updateDigestSetting(userData.uid, meta.config.dailyDigestFreq),
