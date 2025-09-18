@@ -31,10 +31,10 @@ module.exports = function (Posts) {
 		let postData = { pid, uid, tid, content, sourceContent, timestamp };
 
 		if (data.visibility) {
-            postData.visibility = data.visibility;
-        } else {
-            postData.visibility = 'everyone'; // default value
-        }
+			postData.visibility = data.visibility;
+		} else {
+			postData.visibility = 'everyone'; // default value
+		}
 		if (data.toPid) {
 			postData.toPid = data.toPid;
 		}

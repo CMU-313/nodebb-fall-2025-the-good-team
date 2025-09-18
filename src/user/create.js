@@ -44,16 +44,16 @@ module.exports = function (User) {
 		const timestamp = data.timestamp || Date.now();
 
 		const ALLOWED_ROLES = new Set(['student', 'instructor']);
-		const role = (typeof data.role === 'string' && ALLOWED_ROLES.has(data.role.toLowerCase()))
-			? data.role.toLowerCase()
-			: 'student';
+		const role = (typeof data.role === 'string' && ALLOWED_ROLES.has(data.role.toLowerCase())) ?
+			data.role.toLowerCase() :
+			'student';
 
 		let userData = {
 			username: data.username,
 			userslug: data.userslug,
 			joindate: timestamp,
 			lastonline: timestamp,
-			role,                 // store canonical role
+			role, // store canonical role
 			status: 'online',
 		};
 		['picture', 'fullname', 'birthday'].forEach((field) => {
@@ -102,9 +102,9 @@ module.exports = function (User) {
 
 		const joins = ['registered-users', 'unverified-users'];
 		if (userData.role === 'instructor') {
-		joins.push('instructors');
+			joins.push('instructors');
 		} else {
-		joins.push('students');
+			joins.push('students');
 		}
 
 		await Promise.all([

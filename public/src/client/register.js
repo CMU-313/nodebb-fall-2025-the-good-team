@@ -109,17 +109,6 @@ define('forum/register', [
 				});
 			});
 		});
-
-		$('#register').on('submit', function (e) {
-			e.preventDefault();
-			const role = $('#role').val(); // <-- get selected role
-			const data = {
-				// ...existing code...
-				role: role, // <-- add role to registration data
-			};
-			// ...existing code...
-		});
-
 		// Set initial focus
 		$('#username').trigger('focus');
 	};

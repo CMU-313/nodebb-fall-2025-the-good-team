@@ -25,7 +25,7 @@ define('forum/compose', ['hooks'], function (hooks) {
 					];
 					const specialOptions = [
 						{ id: 'everyone', label: 'Everyone' },
-						{ id: 'all', label: 'All Instructors' }
+						{ id: 'all', label: 'All Instructors' },
 					];
 
 					let selected = ['everyone'];
