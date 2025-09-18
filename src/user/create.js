@@ -103,12 +103,12 @@ module.exports = function (User) {
 		// Determine role group name
 		const roleGroup =
 		userData.role === 'instructor' ? 'instructors' :
-		'students';
+			'students';
 
 		// Ensure the role group exists (tests start with an empty DB)
 		const exists = await groups.exists(roleGroup);
 		if (!exists) {
-		await groups.create({ name: roleGroup, system: 0, hidden: 0 });
+			await groups.create({ name: roleGroup, system: 0, hidden: 0 });
 		}
 
 		// Base groups + role group
