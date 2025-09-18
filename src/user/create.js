@@ -100,19 +100,13 @@ module.exports = function (User) {
 		}
 
 
-		// Determine role group name
 		const roleGroup =
-		userData.role === 'instructor' ? 'instructors' :
-			'students';
+  		userData.role === 'instructor' ? 'instructors' : 'students';
 
-		// Ensure the role group exists (tests start with an empty DB)
-		const exists = await groups.exists(roleGroup);
-		if (!exists) {
-			await groups.create({ name: roleGroup, system: 0, hidden: 0 });
+		const joins = ['registered-users', 'unverified-users'];
+		if (await groups.exists(roleGroup)) {
+			joins.push(roleGroup);
 		}
-
-		// Base groups + role group
-		const joins = ['registered-users', 'unverified-users', roleGroup];
 
 		await Promise.all([
 			db.incrObjectField('global', 'userCount'),
