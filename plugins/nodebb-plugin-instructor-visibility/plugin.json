@@ -1,0 +1,9 @@
+{
+  "id": "nodebb-plugin-instructor-visibility",
+  "name": "Instructor Visibility",
+  "description": "Restrict posts to selected instructor",
+  "library": "library.js",
+  "hooks": [
+    { "hook": "filter:posts.get", "method": "testHook" }
+  ]
+}

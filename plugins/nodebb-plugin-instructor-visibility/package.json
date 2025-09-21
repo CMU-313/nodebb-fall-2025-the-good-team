@@ -1,0 +1,9 @@
+{
+  "name": "nodebb-plugin-instructor-visibility",
+  "version": "1.0.0",
+  "description": "Restrict posts to selected instructor",
+  "main": "library.js",
+  "keywords": ["nodebb", "plugin"],
+  "author": "Your Name",
+  "license": "MIT"
+}
