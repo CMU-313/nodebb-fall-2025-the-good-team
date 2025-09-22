@@ -109,7 +109,6 @@ define('forum/register', [
 				});
 			});
 		});
-
 		// Set initial focus
 		$('#username').trigger('focus');
 	};
