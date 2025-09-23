@@ -32,7 +32,24 @@ require(['hooks', 'api'], function (hooks, api) {
   });
 
   // Add selected value to composerData
+
   hooks.on('action:composer.submit', function (payload) {
+    const uuid = payload.composerData?.uuid;
+    if (!uuid) return;
+    const $root = $('.composer[data-uuid="' + uuid + '"]');
+    const val = $root.find('[component="composer/visibility"]').val();
+
+    // Check if the visibility value is valid before setting it
+    if (val) {
+        payload.composerData.visibility = val;
+    } else {
+        // Log an error if the value is missing
+        console.error('Visibility value is missing from the composer payload.');
+        // You might also want to prevent the submission here if a value is required.
+    }
+});
+
+ hooks.on('action:composer.submit', function (payload) {
     const uuid = payload.composerData?.uuid;
     if (!uuid) return;
     const $root = $('.composer[data-uuid="' + uuid + '"]');
