@@ -12,6 +12,8 @@ const activitypub = require('../activitypub');
 const cache = require('../cache');
 const meta = require('../meta');
 const utils = require('../utils');
+const posts = require('../posts');
+const groups = require('../groups');
 
 const Categories = module.exports;
 
@@ -106,9 +108,9 @@ Categories.getAllCidsFromSet = async function (key) {
 	return cids.slice();
 };
 
-Categories.getAllCategories = async function () {
+Categories.getAllCategories = async function (uid) {
 	const cids = await Categories.getAllCidsFromSet('categories:cid');
-	return await Categories.getCategories(cids);
+	return await Categories.getCategories(cids, uid);
 };
 
 Categories.getCidsByPrivilege = async function (set, uid, privilege) {
@@ -134,7 +136,7 @@ Categories.getModeratorUids = async function (cids) {
 	return await privileges.categories.getUidsWithPrivilege(cids, 'moderate');
 };
 
-Categories.getCategories = async function (cids) {
+Categories.getCategories = async function (cids, uid) {
 	if (!Array.isArray(cids)) {
 		throw new Error('[[error:invalid-cid]]');
 	}
@@ -147,11 +149,42 @@ Categories.getCategories = async function (cids) {
 		Categories.getCategoriesData(cids),
 		Categories.getTagWhitelist(cids),
 	]);
+    
+	// ADDED FILTER FOR PREVIEWS
+	const mainPids = categories.map(c => c && c.latest_topic && c.latest_topic.mainPid).filter(Boolean);
+    
+	// Fetch visibility data
+	const postData = await posts.getPostsFields(mainPids, ['visibility'], uid);
+	const pidToPostData = _.zipObject(mainPids, postData);
+
+	const isInstructor = await groups.isMember(uid, 'instructors');
+
+	categories.forEach((category) => {
+		if (category && category.latest_topic && category.latest_topic.mainPid) {
+			const post = pidToPostData[category.latest_topic.mainPid];
+			const visibility = post ? post.visibility : null;
+
+			let isVisible = false;
+			if (visibility === 'everyone') {
+				isVisible = true;
+			} else if (visibility === `user:${uid}`) {
+				isVisible = true;
+			} else if (visibility === 'all_instructors' && isInstructor) {
+				isVisible = true;
+			}
+            
+			if (!isVisible) {
+				category.latest_topic = null;
+			}
+		}
+	});
+
 	categories.forEach((category, i) => {
 		if (category) {
 			category.tagWhitelist = tagWhitelist[i];
 		}
 	});
+
 	return categories;
 };
 
