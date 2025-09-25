@@ -157,12 +157,44 @@ module.exports = function (Categories) {
 	function assignTopicsToCategories(categories, topics) {
 		categories.forEach((category) => {
 			if (category) {
-				category.posts = topics.filter(
+				category.unread = false;
+				category['unread-class'] = '';
+				const categoryPosts = topics.filter(
 					t => t.cid &&
 					(t.cid === category.cid || (t.parentCids && t.parentCids.includes(category.cid)))
 				)
 					.sort((a, b) => b.timestamp - a.timestamp)
 					.slice(0, parseInt(category.numRecentReplies, 10));
+				category.posts = categoryPosts;
+				if (category.posts.length > 0) {
+					// If there are posts, the teaser is the first post
+					category.teaser = category.posts[0];
+				} else {
+					// If no posts are visible, set an empty teaser object with ALL required properties
+					category.teaser = {
+						pid: 0,
+						tid: 0,
+						url: '',
+						timestampISO: '',
+						index: 0,
+						topic: {
+							tid: 0,
+							slug: '',
+							title: '',
+						},
+						user: {
+							uid: 0,
+							username: '',
+							userslug: '',
+							picture: null,
+							displayname: '',
+							'icon:text': '',
+							'icon:bgColor': '',
+							isLocal: false,
+						},
+					};
+				}
+        
 			}
 		});
 		topics.forEach((t) => { t.parentCids = undefined; });

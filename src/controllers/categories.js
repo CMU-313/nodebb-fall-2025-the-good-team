@@ -8,6 +8,7 @@ const meta = require('../meta');
 const pagination = require('../pagination');
 const helpers = require('./helpers');
 const privileges = require('../privileges');
+const user = require('../user');
 
 const categoriesController = module.exports;
 
@@ -58,6 +59,14 @@ categoriesController.list = async function (req, res) {
 			property: 'og:title',
 			content: '[[pages:categories]]',
 		});
+	}
+
+	if (res.locals.isAPI) {
+		const isLastPage = page >= pageCount;
+		data.nextStart = isLastPage ? -1 : stop + 1;
+		data.loggedIn = req.loggedIn;
+		data.loggedInUser = req.loggedIn ? await user.getUserData(req.uid) : null;
+		return res.json(data);
 	}
 
 	res.render('categories', data);
