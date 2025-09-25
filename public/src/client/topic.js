@@ -140,6 +140,13 @@ define('forum/topic', [
 	};
 
 	function handleBookmark(tid) {
+		alerts.alert({
+			type: 'success',
+			title: 'an alert !',
+			message: 'this is an laert',
+			timeout: 5000,
+		});
+
 		if (window.location.hash) {
 			const el = $(utils.escapeHTML(window.location.hash));
 			if (el.length) {

@@ -1,11 +1,13 @@
 'use strict';
-
+console.log('compose.js module loaded'); 
 
 define('forum/compose', ['hooks'], function (hooks) {
+	console.log('inside compose.js define function'); 
 	const Compose = {};
 
 	Compose.init = function () {
 		const container = $('.composer');
+		console.log('inside compose init function');
 
 		if (container.length) {
 			hooks.fire('action:composer.enhance', {

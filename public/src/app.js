@@ -1,4 +1,5 @@
 'use strict';
+console.log('APP.JS IS LOADING');
 
 window.$ = require('jquery');
 
