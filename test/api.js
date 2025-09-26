@@ -641,6 +641,7 @@ describe('API', async () => {
 			// If schema contains no properties, check passes
 			return;
 		}
+
 		//ADDED FOR TEST FIXES
 		if (Array.isArray(required)) {
 			required = required.filter(prop => prop !== 'unread' && prop !== 'unread-class' && prop !== 'teaser' && prop !== 'nextStart' && prop !== 'uid');
