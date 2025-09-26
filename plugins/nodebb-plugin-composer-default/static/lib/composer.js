@@ -741,12 +741,6 @@ define('composer', [
 				timestamp: scheduler.getTimestamp(),
 				visibility,
 			};
-			alerts.alert({
-				type: 'success',
-				timeout: 5000,
-				title: 'hello',
-				message: 'why hello there',
-			});
 		} else if (action === 'posts.reply') {
 			route = `/topics/${postData.tid}`;
 			composerData = {
@@ -782,7 +776,6 @@ define('composer', [
 
 		await hooks.fire('filter:composer.submit', submitHookData);
 		hooks.fire('action:composer.submit', Object.freeze(submitHookData));
-
 		// Minimize composer (and set textarea as readonly) while submitting
 		var taskbarIconEl = $('#taskbar .composer[data-uuid="' + post_uuid + '"] i');
 		var textareaEl = postContainer.find('.write');
@@ -809,6 +802,8 @@ define('composer', [
 						},
 					});
 				} else if (action === 'topics.post') {
+					console.log('you posted!');
+					submitPost(visibility);
 					if (submitHookData.redirect) {
 						ajaxify.go('topic/' + data.slug, undefined, (onComposeRoute || composer.bsEnvironment === 'xs' || composer.bsEnvironment === 'sm'));
 					}
@@ -840,6 +835,40 @@ define('composer', [
 
 	function onShow() {
 		$('html').addClass('composing');
+	}
+
+	async function submitPost(visibility) {
+		let visibilityMessage = 'Post submitted successfully!';
+		console.log('visibility variable:', visibility);
+
+		if (visibility) {
+			if (visibility === 'everyone') {
+				console.log('everyone');
+				visibilityMessage = 'Posted publicly to everyone';
+			} else if (visibility === 'all_instructors') {
+				console.log('all profs');
+				visibilityMessage = 'Posted only to all instructors';
+			} else if (visibility.startsWith('user:')) {
+				const userId = visibility.replace('user:', '');
+				try {
+					const userData = await api.get(`/api/user/uid/${userId}`);
+					console.log('User API response:', userData);
+					const user = userData.user || userData;
+					const userName = user.displayname || user.username || `User ${userId}`;
+					visibilityMessage = `Posted privately to only ${userName}`;
+				} catch (err) {
+					console.error('Error fetching user data:', err);
+					visibilityMessage = `Post submitted, but could not fetch username (user ${userId}).`;
+				}
+			}
+		}
+
+		alerts.alert({
+			type: 'success',
+			timeout: 5000,
+			title: 'Post Submitted Successfully!',
+			message: visibilityMessage,
+		});
 	}
 
 	function onHide() {
