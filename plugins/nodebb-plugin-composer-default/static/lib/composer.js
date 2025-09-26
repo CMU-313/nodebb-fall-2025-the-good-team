@@ -802,7 +802,6 @@ define('composer', [
 						},
 					});
 				} else if (action === 'topics.post') {
-					console.log('you posted!');
 					submitPost(visibility);
 					if (submitHookData.redirect) {
 						ajaxify.go('topic/' + data.slug, undefined, (onComposeRoute || composer.bsEnvironment === 'xs' || composer.bsEnvironment === 'sm'));
@@ -839,20 +838,16 @@ define('composer', [
 
 	async function submitPost(visibility) {
 		let visibilityMessage = 'Post submitted successfully!';
-		console.log('visibility variable:', visibility);
 
 		if (visibility) {
 			if (visibility === 'everyone') {
-				console.log('everyone');
 				visibilityMessage = 'Posted publicly to everyone';
 			} else if (visibility === 'all_instructors') {
-				console.log('all profs');
 				visibilityMessage = 'Posted only to all instructors';
 			} else if (visibility.startsWith('user:')) {
 				const userId = visibility.replace('user:', '');
 				try {
 					const userData = await api.get(`/api/user/uid/${userId}`);
-					console.log('User API response:', userData);
 					const user = userData.user || userData;
 					const userName = user.displayname || user.username || `User ${userId}`;
 					visibilityMessage = `Posted privately to only ${userName}`;
@@ -866,7 +861,7 @@ define('composer', [
 		alerts.alert({
 			type: 'success',
 			timeout: 5000,
-			title: 'Post Submitted Successfully!',
+			title: 'Post submitted successfully!',
 			message: visibilityMessage,
 		});
 	}
