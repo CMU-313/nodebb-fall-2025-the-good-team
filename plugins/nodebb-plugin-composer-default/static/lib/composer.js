@@ -741,6 +741,12 @@ define('composer', [
 				timestamp: scheduler.getTimestamp(),
 				visibility,
 			};
+			alerts.alert({
+				type: 'success',
+				timeout: 5000,
+				title: 'hello',
+				message: 'why hello there',
+			});
 		} else if (action === 'posts.reply') {
 			route = `/topics/${postData.tid}`;
 			composerData = {
