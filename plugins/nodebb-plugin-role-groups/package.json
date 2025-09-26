@@ -1,0 +1,6 @@
+{
+  "name": "nodebb-plugin-role-groups",
+  "version": "1.0.0",
+  "main": "library.js",
+  "description": "Seeds 'students' and 'instructors' groups at NodeBB startup"
+}
