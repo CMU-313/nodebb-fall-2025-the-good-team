@@ -11,7 +11,6 @@ const privileges = require('../privileges');
 const plugins = require('../plugins');
 const batch = require('../batch');
 const utils = require('../utils');
-const groups = require('../groups');
 
 module.exports = function (Categories) {
 	Categories.getRecentReplies = async function (cid, uid, start, stop) {
@@ -90,32 +89,8 @@ module.exports = function (Categories) {
 		let tids = _.uniq(_.flatten(results).filter(Boolean));
 
 		tids = await privileges.topics.filterTids('topics:read', tids, uid);
-
-		// ADDED VISIBILITY FILTER FOR RECENT TOPICS
-		const isInstructor = await groups.isMember(uid, 'instructors');
-		const topicsData = await topics.getTopicsFields(tids, ['tid', 'mainPid', 'postcount']);
-		const mainPids = topicsData.map(topic => topic.mainPid).filter(Boolean);
-		const postData = await posts.getPostsFields(mainPids, ['visibility'], uid);
-		const pidToPostData = _.zipObject(mainPids, postData);
-
-		const filteredTids = topicsData.filter((t) => {
-			const post = pidToPostData[t.mainPid];
-			const visibility = post ? post.visibility : null;
-
-			let isVisible = false;
-			if (visibility === 'everyone') {
-				isVisible = true;
-			} else if (visibility === `user:${uid}`) {
-				isVisible = true;
-			} else if (visibility === 'all_instructors' && isInstructor) {
-				isVisible = true;
-			}
-			return isVisible;
-		}).map(t => t.tid);
-
-		const filteredTopics = await getTopics(filteredTids, uid);
-		
-		assignTopicsToCategories(categoryData, filteredTopics);
+		const topics = await getTopics(tids, uid);
+		assignTopicsToCategories(categoryData, topics);
 
 		bubbleUpChildrenPosts(categoryData);
 	};
