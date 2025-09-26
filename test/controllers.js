@@ -1155,7 +1155,8 @@ describe('Controllers', () => {
 			assert.equal(response.statusCode, 200);
 			assert(body);
 			const notif = body.notifications[0];
-			assert.equal(notif.bodyShort, '<strong>test1</strong> has posted a reply to: <strong>test2</strong>');
+			const postContentWords = 'some post content'.split(' ').slice(0, 4).join(' ');
+			assert.strictEqual(notification.content, `${postContentWords}...`);
 			assert.equal(notif.bodyLong, notifData.bodyLong);
 			assert.equal(notif.pid, notifData.pid);
 			assert.equal(notif.path, nconf.get('relative_path') + notifData.path);
