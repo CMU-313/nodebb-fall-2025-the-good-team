@@ -159,32 +159,12 @@ Notifications.create = async function (data) {
 	// reads as a content snippet instead of the generic phrasing.
 	try {
 		if (data.bodyLong) {
-			console.log("passed");
 			let text = utils.stripHTMLTags(String(data.bodyLong || ''), ['img', 'p', 'a']);
 			text = text.replace(/\s+/g, ' ').trim();
 			if (text) {
 				const words = text.split(/\s+/).filter(Boolean);
-				data.bodyShort = words.slice(0, 5).join(' ') + (words.length > 5 ? '…' : '');
+				data.bodyShort = words.slice(0, 4).join(' ') + (words.length > 4 ? '…' : '');
 			}
-			console.log("actually passed");
-			// const bodyShortStr = String(data.bodyShort || '').trim();
-			// const mergeIdStr = String(data.mergeId || '').trim().toLowerCase();
-			// const typeStr = String(data.type || '').trim();
-
-			// More resilient checks
-			// const shortIsGeneric =
-			// 	!bodyShortStr ||
-			// 	/user-posted-to|has posted a reply to|mentioned you|mentioned you in|user-posted-topic/i.test(bodyShortStr) ||
-			// 	/\[\[.*notifications:.*user-posted-to.*\]\]/i.test(bodyShortStr); // catch token-style strings
-			// const mergeIsPostedTo = mergeIdStr.includes('user-posted-to');
-			// const isReplyType = /new-reply|new-chat|new-group-chat|new-public-chat/i.test(typeStr);
-
-			// winston.verbose('[notifications.create] snippet flags', { shortIsGeneric, mergeIsPostedTo, isReplyType, bodyShortStr, mergeIdStr, typeStr });
-
-			// if (shortIsGeneric || mergeIsPostedTo || isReplyType) {
-			
-				
-			// }
 		}
 	} catch (e) {
 		winston.verbose('[notifications.create] failed to generate snippet for bodyShort', e);
@@ -571,7 +551,12 @@ Notifications.merge = async function (notifications) {
 					notifications[modifyIndex].path = set[set.length - 1].path;
 				} break;
 
-				case 'new-register':
+				case 'new-register': {
+					const usernames = _.uniq(set.map(notifObj => notifObj && notifObj.user && notifObj.user.displayname));
+					const title = utils.decodeHTMLEntities(notifications[modifyIndex].topicTitle || '');
+					let titleEscaped = title.replace(/%/g, '&#37;').replace(/,/g, '&#44;');
+					titleEscaped = titleEscaped ? (`, ${titleEscaped}`) : '';
+
 					const candidate =
 						`[[notifications:user-posted-to-${typeFromLength(usernames)}, ${usernames.join(', ')}${titleEscaped}]]`;
 
@@ -579,6 +564,8 @@ Notifications.merge = async function (notifications) {
 						notifications[modifyIndex].bodyShort = candidate;
 					}
 					break;
+				}
+
 			}
 
 			// Filter out duplicates
