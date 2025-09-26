@@ -14,7 +14,7 @@ const utils = require('../utils');
 module.exports = function (Posts) {
 	Posts.create = async function (data) {
 		// This is an internal method, consider using Topics.reply instead
-		const { uid, tid, _activitypub, sourceContent, visibility } = data;
+		const { uid, tid, _activitypub, sourceContent } = data;
 		const content = data.content.toString();
 		const timestamp = data.timestamp || Date.now();
 		const isMain = data.isMain || false;
@@ -28,7 +28,7 @@ module.exports = function (Posts) {
 		}
 
 		const pid = data.pid || await db.incrObjectField('global', 'nextPid');
-		let postData = { pid, uid, tid, content, sourceContent, timestamp, visibility };
+		let postData = { pid, uid, tid, content, sourceContent, timestamp };
 
 		if (data.toPid) {
 			postData.toPid = data.toPid;

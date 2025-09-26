@@ -3,11 +3,13 @@
 const nconf = require('nconf');
 const _ = require('lodash');
 
+
 const categories = require('../categories');
 const meta = require('../meta');
 const pagination = require('../pagination');
 const helpers = require('./helpers');
 const privileges = require('../privileges');
+const user = require('../user');
 
 const categoriesController = module.exports;
 
@@ -30,12 +32,16 @@ categoriesController.list = async function (req, res) {
 
 	const allChildCids = _.flatten(await Promise.all(pageCids.map(categories.getChildrenCids)));
 	const childCids = await privileges.categories.filterCids('find', allChildCids, req.uid);
-	const categoryData = await categories.getCategories(pageCids.concat(childCids), req.uid);
+	const categoryData = await categories.getCategories(pageCids.concat(childCids));
 	const tree = categories.getTree(categoryData, 0);
-	await Promise.all([
+
+
+
+	const promises = [
 		categories.getRecentTopicReplies(categoryData, req.uid, req.query),
-		categories.setUnread(tree, pageCids.concat(childCids), req.uid),
-	]);
+	];
+    
+	await Promise.all(promises);
 
 	const data = {
 		title: meta.config.homePageTitle || '[[pages:home]]',
@@ -60,5 +66,38 @@ categoriesController.list = async function (req, res) {
 		});
 	}
 
+	if (res.locals.isAPI) {
+		if (data.hasOwnProperty('unread')) {
+			delete data.unread;
+		}
+
+		const payload = {
+			categories: data.categories,
+			pagination: data.pagination,
+			title: data.title,
+			selectCategoryLabel: data.selectCategoryLabel,
+			breadcrumbs: data.breadcrumbs,
+		};
+		
+		if (page > 1) {
+			const isLastPage = page >= pageCount;
+			data.nextStart = isLastPage ? -1 : stop + 1;
+		}
+
+		payload.loggedIn = req.loggedIn;
+		payload.loggedInUser = req.loggedIn ? await user.getUserData(req.uid) : null;
+		payload.relative_path = nconf.get('relative_path');
+		payload.template = { name: 'categories' };
+		payload.url = nconf.get('url');
+		payload.bodyClass = 'page-categories';
+		payload._header = { tags: { meta: [], link: [] } };
+		payload.widgets = {};
+
+		return res.json(payload);
+	}
+	await categories.setUnread(tree, pageCids.concat(childCids), req.uid);
+
+	data.config = meta.config;
+	data.csrf_token = req.csrfToken ? req.csrfToken() : '';
 	res.render('categories', data);
 };
