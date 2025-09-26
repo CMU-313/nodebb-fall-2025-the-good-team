@@ -34,6 +34,10 @@ get:
               - $ref: ../../components/schemas/CategoryObject.yaml#/CategoryObject
               - type: object
                 properties:
+                  uid:
+                    type: number
+                    description: The unique ID of the current user viewing the category page.
+                    example: 1 
                   tagWhitelist:
                     type: array
                     items:
