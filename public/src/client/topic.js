@@ -140,6 +140,7 @@ define('forum/topic', [
 	};
 
 	function handleBookmark(tid) {
+
 		if (window.location.hash) {
 			const el = $(utils.escapeHTML(window.location.hash));
 			if (el.length) {
