@@ -76,12 +76,44 @@ Categories.getCategoryById = async function (data) {
 	category.hasFollowers = localFollowers ? (localFollowers.uids.size + localFollowers.cids.size) > 0 : localFollowers;
 	category.parent = parent;
 
+	category.unread = false;
+	category['unread-class'] = '';
+	category.cid = category.cid || 0;
+	category.name = category.name || '';
+	category.handle = category.handle || '';
+	category.description = category.description || '';
+	category.descriptionParsed = category.descriptionParsed || '';
+	category.icon = category.icon || '';
+	category.bgColor = category.bgColor || '';
+	category.color = category.color || '';
+	category.slug = category.slug || '';
+	category.parentCid = category.parentCid || 0;
+	category.post_count = category.post_count || 0;
+	category.disabled = category.disabled || 0;
+	category.order = category.order || 0;
+	category.link = category.link || '';
+	category.numRecentReplies = category.numRecentReplies || 0;
+	category.class = category.class || '';
+	category.imageClass = category.imageClass || '';
+	category.isSection = category.isSection || 0;
+	category.minTags = category.minTags || 0;
+	category.maxTags = category.maxTags || 0;
+	category.postQueue = category.postQueue || 0;
+	category.totalPostCount = category.totalPostCount || 0;
+	category.totalTopicCount = category.totalTopicCount || 0;
+	category.subCategoriesPerPage = category.subCategoriesPerPage || 0;
+	category.backgroundImage = category.backgroundImage || null;
+
 	calculateTopicPostCount(category);
 	const result = await plugins.hooks.fire('filter:category.get', {
 		category: category,
 		...data,
 	});
-	return { ...result.category };
+	return {
+		...result.category,
+		topics: topics.topics,
+		nextStart: topics.nextStart,
+	};
 };
 
 Categories.getCidByHandle = async function (handle) {
