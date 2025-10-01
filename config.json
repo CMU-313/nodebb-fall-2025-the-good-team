@@ -19,5 +19,6 @@
         "method": "console"
     },
     "plugins": [
-    "nodebb-plugin-role-groups"]
+        "nodebb-plugin-role-groups"
+    ]
 }
