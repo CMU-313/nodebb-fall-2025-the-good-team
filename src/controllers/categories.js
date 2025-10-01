@@ -35,14 +35,11 @@ categoriesController.list = async function (req, res) {
 	const categoryData = await categories.getCategories(pageCids.concat(childCids));
 	const tree = categories.getTree(categoryData, 0);
 
-
-
-	const promises = [
+	await Promise.all([
 		categories.getRecentTopicReplies(categoryData, req.uid, req.query),
-	];
-    
-	await Promise.all(promises);
-
+		categories.setUnread(tree, pageCids.concat(childCids), req.uid),
+	]);
+	
 	const data = {
 		title: meta.config.homePageTitle || '[[pages:home]]',
 		selectCategoryLabel: '[[pages:categories]]',
