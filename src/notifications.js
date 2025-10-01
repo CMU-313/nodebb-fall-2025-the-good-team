@@ -152,6 +152,24 @@ Notifications.create = async function (data) {
 	}
 	const now = Date.now();
 	data.datetime = now;
+
+	// If this notification contains post/chat content (bodyLong) and the
+	// short body is the generic "user posted"/mention template (or not set),
+	// replace it with the first five words of the message so the notification
+	// reads as a content snippet instead of the generic phrasing.
+	try {
+		if (data.bodyLong) {
+			let text = utils.stripHTMLTags(String(data.bodyLong || ''), ['img', 'p', 'a']);
+			text = text.replace(/\s+/g, ' ').trim();
+			if (text) {
+				const words = text.split(/\s+/).filter(Boolean);
+				data.bodyShort = words.slice(0, 5).join(' ') + (words.length > 5 ? '…' : '');
+			}
+		}
+	} catch (e) {
+		winston.verbose('[notifications.create] failed to generate snippet for bodyShort', e);
+	}
+
 	const result = await plugins.hooks.fire('filter:notifications.create', {
 		data: data,
 	});
@@ -421,6 +439,14 @@ Notifications.prune = async function () {
 };
 
 Notifications.merge = async function (notifications) {
+	// Add this helper to detect a generic/boilerplate bodyShort
+	function isGenericShort(str) {
+		if (!str) return true;
+		str = String(str);
+		// Translation tokens ([[...]]), or known boilerplate phrases
+		return /\[\[.*\]\]|user-posted-to|has posted a reply to|mentioned you|mentioned you in|user-posted-topic/i.test(str);
+	}
+
 	// When passed a set of notification objects, merge any that can be merged
 	const mergeIds = [
 		'notifications:upvoted-your-post-in',
@@ -507,16 +533,31 @@ Notifications.merge = async function (notifications) {
 					titleEscaped = titleEscaped ? (`, ${titleEscaped}`) : '';
 
 					if (numUsers === 2 || numUsers === 3) {
-						notifications[modifyIndex].bodyShort = `[[${mergeId}-${typeFromLength(usernames)}, ${usernames.join(', ')}${titleEscaped}]]`;
+						const candidate =
+							`[[notifications:user-posted-to-${typeFromLength(usernames)}, ${usernames.join(', ')}${titleEscaped}]]`;
+						if (isGenericShort(notifications[modifyIndex].bodyShort)) {
+							notifications[modifyIndex].bodyShort = candidate;
+						}
+
 					} else if (numUsers > 2) {
-						notifications[modifyIndex].bodyShort = `[[${mergeId}-${typeFromLength(usernames)}, ${usernames.slice(0, 2).join(', ')}, ${numUsers - 2}${titleEscaped}]]`;
+						const candidate =
+							`[[notifications:user-posted-to-${typeFromLength(usernames)}, ${usernames.join(', ')}${titleEscaped}]]`;
+
+						if (isGenericShort(notifications[modifyIndex].bodyShort)) {
+							notifications[modifyIndex].bodyShort = candidate;
+						}
 					}
 
 					notifications[modifyIndex].path = set[set.length - 1].path;
 				} break;
 
 				case 'new-register':
-					notifications[modifyIndex].bodyShort = `[[notifications:${mergeId}-multiple, ${set.length}]]`;
+					const candidate =
+						`[[notifications:user-posted-to-${typeFromLength(usernames)}, ${usernames.join(', ')}${titleEscaped}]]`;
+
+					if (isGenericShort(notifications[modifyIndex].bodyShort)) {
+						notifications[modifyIndex].bodyShort = candidate;
+					}
 					break;
 			}
 
