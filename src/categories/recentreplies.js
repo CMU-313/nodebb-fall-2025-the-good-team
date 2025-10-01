@@ -11,6 +11,7 @@ const privileges = require('../privileges');
 const plugins = require('../plugins');
 const batch = require('../batch');
 const utils = require('../utils');
+const groups = require('../groups');
 
 module.exports = function (Categories) {
 	Categories.getRecentReplies = async function (cid, uid, start, stop) {
@@ -89,9 +90,33 @@ module.exports = function (Categories) {
 		let tids = _.uniq(_.flatten(results).filter(Boolean));
 
 		tids = await privileges.topics.filterTids('topics:read', tids, uid);
-		const topics = await getTopics(tids, uid);
-		assignTopicsToCategories(categoryData, topics);
 
+		// ADDED VISIBILITY FILTER FOR RECENT TOPICS
+		const isInstructor = await groups.isMember(uid, 'instructors');
+		const topicsData = await topics.getTopicsFields(tids, ['tid', 'mainPid', 'postcount']);
+		const mainPids = topicsData.map(topic => topic.mainPid).filter(Boolean);
+		const postData = await posts.getPostsFields(mainPids, ['visibility'], uid);
+		const pidToPostData = _.zipObject(mainPids, postData);
+
+		const filteredTids = topicsData.filter((t) => {
+			const post = pidToPostData[t.mainPid];
+			const visibility = post ? post.visibility : null;
+
+			let isVisible = false;
+			if (visibility === 'everyone') {
+				isVisible = true;
+			} else if (visibility === `user:${uid}`) {
+				isVisible = true;
+			} else if (visibility === 'all_instructors' && isInstructor) {
+				isVisible = true;
+			}
+			return isVisible;
+		}).map(t => t.tid);
+
+		const filteredTopics = await getTopics(filteredTids, uid);
+
+		assignTopicsToCategories(categoryData, filteredTopics);
+		
 		bubbleUpChildrenPosts(categoryData);
 	};
 
@@ -132,43 +157,13 @@ module.exports = function (Categories) {
 	function assignTopicsToCategories(categories, topics) {
 		categories.forEach((category) => {
 			if (category) {
-				category.unread = false;
-				category['unread-class'] = '';
-				const categoryPosts = topics.filter(
+				category.posts = topics.filter(
 					t => t.cid &&
 					(t.cid === category.cid || (t.parentCids && t.parentCids.includes(category.cid)))
 				)
 					.sort((a, b) => b.timestamp - a.timestamp)
 					.slice(0, parseInt(category.numRecentReplies, 10));
 				category.posts = categoryPosts;
-				if (category.posts.length > 0) {
-					// If there are posts, the teaser is the first post
-					category.teaser = category.posts[0];
-				} else {
-					// If no posts are visible, set an empty teaser object with ALL required properties
-					category.teaser = {
-						pid: 0,
-						tid: 0,
-						url: '',
-						timestampISO: '',
-						index: 0,
-						topic: {
-							tid: 0,
-							slug: '',
-							title: '',
-						},
-						user: {
-							uid: 0,
-							username: '',
-							userslug: '',
-							picture: null,
-							displayname: '',
-							'icon:text': '',
-							'icon:bgColor': '',
-							isLocal: false,
-						},
-					};
-				}
         
 			}
 		});

@@ -9,7 +9,7 @@ const meta = require('../meta');
 const pagination = require('../pagination');
 const helpers = require('./helpers');
 const privileges = require('../privileges');
-const user = require('../user');
+// const user = require('../user');
 
 const categoriesController = module.exports;
 
@@ -32,7 +32,7 @@ categoriesController.list = async function (req, res) {
 
 	const allChildCids = _.flatten(await Promise.all(pageCids.map(categories.getChildrenCids)));
 	const childCids = await privileges.categories.filterCids('find', allChildCids, req.uid);
-	const categoryData = await categories.getCategories(pageCids.concat(childCids));
+	const categoryData = await categories.getCategories(pageCids.concat(childCids), req.uid);
 	const tree = categories.getTree(categoryData, 0);
 
 	await Promise.all([
@@ -63,12 +63,6 @@ categoriesController.list = async function (req, res) {
 		});
 	}
 
-	if (res.locals.isAPI) {
-		const isLastPage = page >= pageCount;
-		data.nextStart = isLastPage ? -1 : stop + 1;
-		data.loggedIn = req.loggedIn;
-		data.loggedInUser = req.loggedIn ? await user.getUserData(req.uid) : null;
-		return res.json(data);
-	}
+
 	res.render('categories', data);
 };
