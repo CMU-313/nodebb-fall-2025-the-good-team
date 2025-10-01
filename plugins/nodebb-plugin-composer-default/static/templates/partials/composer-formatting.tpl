@@ -60,8 +60,7 @@
 			component="composer/visibility"
 			aria-label="[[topic:composer.visibility]]">
 			<option value="everyone">Everyone</option>
-			<option value="all_instructors">All Instructors</option>
-			<option value="specific_instructors">Specific Instructors…</option>
+			<option value="all_instructors">All Instructors</option>./n
 		</select>
 		</li>
 		{{{ end }}}

@@ -1,6 +1,7 @@
 {
   "id": "nodebb-plugin-role-groups",
   "name": "Role Groups Seeder",
+  "description": "A plugin to seed role groups.",
   "library": "./library.js",
   "hooks": [
     { "hook": "static:app.load", "method": "load" }
