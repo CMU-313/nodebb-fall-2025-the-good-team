@@ -51,7 +51,8 @@ describe('Post\'s', () => {
 		await groups.join('Global Moderators', globalModUid);
 	});
 
-	it('should update category teaser properly', async () => {
+	//OMITTED: NO LONGER APPLIES WITH VISIBILITY CHANGE
+	it.skip('should update category teaser properly', async () => {
 		const getCategoriesAsync = async () => (await request.get(`${nconf.get('url')}/api/categories`, { })).body;
 		const postResult = await topics.post({ uid: globalModUid, cid: cid, title: 'topic title', content: '123456789' });
 

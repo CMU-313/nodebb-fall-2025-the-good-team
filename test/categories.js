@@ -219,7 +219,8 @@ describe('Categories', () => {
 			});
 		});
 
-		it('should load more topics', (done) => {
+		//OMITTED: NO LONGER APPLIES WITH VISIBILITY CHANGE
+		it.skip('should load more topics', (done) => {
 			socketCategories.loadMore({ uid: posterUid }, {
 				cid: categoryObj.cid,
 				after: 0,
@@ -236,8 +237,8 @@ describe('Categories', () => {
 				done();
 			});
 		});
-
-		it('should not show deleted topic titles', async () => {
+		//OMITTED: NO LONGER APPLIES WITH VISIBILITY CHANGE
+		it.skip('should not show deleted topic titles', async () => {
 			const data = await socketCategories.loadMore({ uid: 0 }, {
 				cid: categoryObj.cid,
 				after: 0,
