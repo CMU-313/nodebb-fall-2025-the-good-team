@@ -13,9 +13,9 @@ async function ensure(name) {
 }
 
 exports.load = async function () {
-  for (const name of ['students', 'tas', 'instructors']) {
+  for (const name of ['students', 'instructors']) {
     await ensure(name);
   }
   // optional log to confirm it ran
-  console.log('[role-groups] ensured students/tas/instructors');
+  console.log('[role-groups] ensured students/instructors');
 };

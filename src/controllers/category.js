@@ -115,9 +115,6 @@ categoryController.get = async function (req, res, next) {
 		return next();
 	}
 
-	const isLastPage = currentPage >= pageCount;
-	categoryData.nextStart = isLastPage ? -1 : start + userSettings.topicsPerPage;
-
 	categories.modifyTopicsByPrivilege(categoryData.topics, userPrivileges);
 	categoryData.tagWhitelist = categories.filterTagWhitelist(categoryData.tagWhitelist, userPrivileges.isAdminOrMod);
 
@@ -182,19 +179,6 @@ categoryController.get = async function (req, res, next) {
 		if (remoteOk) {
 			categoryData.handleFull = `${categoryData.handle}@${nconf.get('url_parsed').host}`;
 		}
-	}
-
-	if (res.locals.isAPI) {
-		categoryData.loggedIn = req.loggedIn;
-		categoryData.loggedInUser = req.loggedIn ? await user.getUserData(req.uid) : null;
-		categoryData.relative_path = relative_path;
-		categoryData.url = url;
-		categoryData.bodyClass = 'page-category';
-		categoryData._header = { tags: { meta: [], link: [] } };
-		categoryData.widgets = {};
-		categoryData.template = { name: 'category' };
-        
-		return res.json(categoryData);
 	}
 
 	res.render('category', categoryData);

@@ -122,7 +122,7 @@ describe('Middlewares', () => {
 			assert(!Object.keys(response.headers).includes('cache-control'));
 		});
 
-		it.skip('should be set to "private" on non-existent routes, for logged in users', async () => {
+		it('should be set to "private" on non-existent routes, for logged in users', async () => {
 			const { response } = await request.get(`${nconf.get('url')}/${utils.generateUUID()}`, {
 				jar,
 				headers: {
@@ -157,7 +157,7 @@ describe('Middlewares', () => {
 			assert.strictEqual(response.headers['cache-control'], 'private');
 		});
 
-		it.skip('should be set to "private" on api routes, for logged-in users', async () => {
+		it('should be set to "private" on api routes, for logged-in users', async () => {
 			const { response } = await request.get(`${nconf.get('url')}/api`, { jar });
 
 			assert.strictEqual(response.statusCode, 200);

@@ -1,5 +1,6 @@
 'use strict';
 
+
 define('forum/compose', ['hooks'], function (hooks) {
 	const Compose = {};
 

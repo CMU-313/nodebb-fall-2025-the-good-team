@@ -10,6 +10,9 @@ const categories = require('../categories');
 const meta = require('../meta');
 const plugins = require('../plugins');
 
+const posts = require('../posts');
+const groups = require('../groups');
+
 module.exports = function (Topics) {
 	Topics.getSortedTopics = async function (params) {
 		const data = {
@@ -245,6 +248,8 @@ module.exports = function (Topics) {
 	async function filterTids(tids, params) {
 		const { filter, uid } = params;
 
+		const isInstructor = await groups.isMember(uid, 'instructors');
+
 		if (filter === 'new') {
 			tids = await Topics.filterNewTids(tids, uid);
 		} else if (filter === 'unreplied') {
@@ -254,7 +259,12 @@ module.exports = function (Topics) {
 		}
 
 		tids = await privileges.topics.filterTids('topics:read', tids, uid);
-		let topicData = await Topics.getTopicsFields(tids, ['uid', 'tid', 'cid', 'tags']);
+		let topicData = await Topics.getTopicsFields(tids, ['uid', 'tid', 'cid', 'tags', 'mainPid']);
+		const mainPids = topicData.map(topic => topic.mainPid);
+
+		const postData = await posts.getPostsFields(mainPids, ['visibility']);
+		const tidToPostData = _.zipObject(tids, postData);
+
 		const topicCids = _.uniq(topicData.map(topic => topic.cid)).filter(Boolean);
 
 		async function getIgnoredCids() {
@@ -273,14 +283,32 @@ module.exports = function (Topics) {
 
 		const cids = params.cids && params.cids.map(String);
 		const { tags } = params;
-		tids = topicData.filter(t => (
-			t &&
-			t.cid &&
-			!isCidIgnored[t.cid] &&
-			(cids || parseInt(t.cid, 10) !== -1) &&
-			(!cids || cids.includes(String(t.cid))) &&
-			(!tags.length || tags.every(tag => t.tags.find(topicTag => topicTag.value === tag)))
-		)).map(t => t.tid);
+		tids = topicData.filter((t) => {
+			const post = tidToPostData[t.tid];
+			// Check for visibility 
+			if (!post || !post.visibility) {
+				return false;
+			}
+
+			if (post.visibility === 'everyone') {
+				return true;
+			}
+			if (post.visibility === `user:${uid}`) {
+				return true;
+			}
+			if (post.visibility === 'all_instructors' && isInstructor) {
+				return true;
+			}
+			return false;
+		})
+			.filter(t => (
+				t &&
+            t.cid &&
+            !isCidIgnored[t.cid] &&
+            (cids || parseInt(t.cid, 10) !== -1) &&
+            (!cids || cids.includes(String(t.cid))) &&
+            (!tags.length || tags.every(tag => t.tags.find(topicTag => topicTag.value === tag)))
+			)).map(t => t.tid);
 
 		const result = await plugins.hooks.fire('filter:topics.filterSortedTids', { tids: tids, params: params });
 		return result.tids;

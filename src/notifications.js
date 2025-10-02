@@ -565,7 +565,6 @@ Notifications.merge = async function (notifications) {
 					}
 					break;
 				}
-
 			}
 
 			// Filter out duplicates

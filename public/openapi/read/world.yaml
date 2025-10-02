@@ -20,12 +20,6 @@ get:
               - $ref: ../components/schemas/CategoryObject.yaml#/CategoryObject
               - type: object
                 properties:
-                  unread: 
-                    type: integer
-                    description: Total number of unread items (topics/notifications) for the user.
-                  unread-class: # <-- ADD THIS BLOCK
-                    type: string
-                    description: CSS class indicating the presence of unread content.
                   tagWhitelist:
                     type: array
                     items:

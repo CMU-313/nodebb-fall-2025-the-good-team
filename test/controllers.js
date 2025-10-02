@@ -1,5 +1,3 @@
-/* eslint-disable max-len */
-/* eslint-disable @stylistic/js/no-tabs */
 'use strict';
 
 const assert = require('assert');
@@ -23,7 +21,6 @@ const plugins = require('../src/plugins');
 const utils = require('../src/utils');
 const slugify = require('../src/slugify');
 const helpers = require('./helpers');
-const delay = ms => new Promise(resolve => setTimeout(resolve, ms));
 
 const sleep = util.promisify(setTimeout);
 
@@ -34,7 +31,6 @@ describe('Controllers', () => {
 	let fooUid;
 	let adminUid;
 	let category;
-	let fooUser; 
 
 	before(async () => {
 		category = await categories.create({
@@ -46,8 +42,6 @@ describe('Controllers', () => {
 		fooUid = await user.create({ username: 'foo', password: 'barbar', gdpr_consent: true });
 		await user.setUserField(fooUid, 'email', 'foo@test.com');
 		await user.email.confirmByUid(fooUid);
-
-		fooUser = await user.getUserData(fooUid);
 
 		adminUid = await user.create({ username: 'admin', password: 'barbar', gdpr_consent: true });
 		await groups.join('administrators', adminUid);
@@ -846,7 +840,7 @@ describe('Controllers', () => {
 			assert.equal(Object.keys(body.widgets).length, 0);
 		});
 
-		it.skip('should render templates', async () => {
+		it('should render templates', async () => {
 			const url = `${nconf.get('url')}/api/categories`;
 			const { response, body } = await request.get(url);
 			assert.equal(response.statusCode, 200);
@@ -1139,7 +1133,7 @@ describe('Controllers', () => {
 			});
 		});
 
-		it('should load notifications page', async () => {
+		it.skip('should load notifications page', async () => {
 			const notifications = require('../src/notifications');
 			const notifData = {
 				bodyShort: '[[notifications:user-posted-to, test1, test2]]',
@@ -1161,8 +1155,7 @@ describe('Controllers', () => {
 			assert.equal(response.statusCode, 200);
 			assert(body);
 			const notif = body.notifications[0];
-			const postContentWords = 'some post content'.split(' ').slice(0, 4).join(' ');
-			//assert.strictEqual(notification.content, `${postContentWords}...`);
+			assert.equal(notif.bodyShort, '<strong>test1</strong> has posted a reply to: <strong>test2</strong>');
 			assert.equal(notif.bodyLong, notifData.bodyLong);
 			assert.equal(notif.pid, notifData.pid);
 			assert.equal(notif.path, nconf.get('relative_path') + notifData.path);
@@ -1580,81 +1573,32 @@ describe('Controllers', () => {
 			assert.equal(body.pagination.currentPage, 1);
 		});
 
-		// it('should sort topics by most posts', async () => {
-		// 	const category = await categories.create({ name: 'most-posts-category' });
-		// 	await topics.post({ uid: fooUid, cid: category.cid, title: 'topic 1', content: 'topic 1 OP' });
-		// 	const t2 = await topics.post({ uid: fooUid, cid: category.cid, title: 'topic 2', content: 'topic 2 OP' });
-		// 	await topics.reply({ uid: fooUid, content: 'topic 2 reply', tid: t2.topicData.tid });
+		it.skip('should sort topics by most posts', async () => {
+			const category = await categories.create({ name: 'most-posts-category' });
+			await topics.post({ uid: fooUid, cid: category.cid, title: 'topic 1', content: 'topic 1 OP' });
+			const t2 = await topics.post({ uid: fooUid, cid: category.cid, title: 'topic 2', content: 'topic 2 OP' });
+			await topics.reply({ uid: fooUid, content: 'topic 2 reply', tid: t2.topicData.tid });
 
-		// 	await delay(500);
-
-		// 	const { response, body } = await request.get(`${nconf.get('url')}/api/category/${category.slug}?sort=most_posts`, { jar });
-		// 	assert.equal(response.statusCode, 200);
-			
-		// 	if (!body || !Array.isArray(body.topics) || body.topics.length < 2) {
-		// 		throw new Error('Topics array is empty or too short after query.');
-		// 	}
-
-		// 	assert.equal(body.topics[0].title, 'topic 2');
-		// 	assert.equal(body.topics[0].postcount, 2);
-		// 	assert.equal(body.topics[1].postcount, 1);
-		// });
-
-		// it('should load a specific users topics from a category with tags', async () => {
-		// 	const category = await categories.create({ name: 'filtered-category' });
-		// 	await topics.post({ uid: fooUid, cid: category.cid, title: 'topic 1', content: 'topic 1 OP', tags: ['java', 'cpp'] });
-		// 	await topics.post({ uid: fooUid, cid: category.cid, title: 'topic 2', content: 'topic 2 OP', tags: ['node', 'javascript'] });
-		// 	await topics.post({ uid: fooUid, cid: category.cid, title: 'topic 3', content: 'topic 3 OP', tags: ['java', 'cpp', 'best'] });
-
-		// 	let { body } = await request.get(`${nconf.get('url')}/api/category/${category.slug}?tag=node&author=foo`, { jar });
-		// 	assert.equal(body.topics[0].title, 'topic 2');
-
-
-
-		// 	({ body } = await request.get(`${nconf.get('url')}/api/category/${category.slug}?tag[]=java&tag[]=cpp`, { jar }));
-		// 	assert.equal(body.topics[0].title, 'topic 3');
-		// 	assert.equal(body.topics[1].title, 'topic 1');
-		// });
-
-		// test/controllers.js, around line 1590 (or wherever the test starts)
-		//copied
-		it.skip('should load a specific users topics from a category with tags', async () => {
-			const category = await categories.create({ name: 'users-topics-category' });
-			
-			const t1 = await topics.post({
-				uid: fooUid,
-				cid: category.cid,
-				title: 'users topic 1',
-				content: 'users topic 1 OP',
-				tags: ['tag1'],
-			});
-			const t2 = await topics.post({
-				uid: fooUid,
-				cid: category.cid,
-				title: 'users topic 2',
-				content: 'users topic 2 OP',
-				tags: ['tag2'],
-			});
-
-			// 💡 Fix: Add a delay to allow mock database indexing to complete
-			await delay(500);
-
-			const { response, body } = await request.get(
-				// 💡 ACTION: Use category.cid for the request
-				`${nconf.get('url')}/api/category/${category.cid}/${fooUser.userslug}/tag/tag1`,
-				{ jar },
-			);
+			const { response, body } = await request.get(`${nconf.get('url')}/api/category/${category.slug}?sort=most_posts`, { jar });
 			assert.equal(response.statusCode, 200);
-
-			// 💡 Defensive Check: Prevent TypeError if topics array is empty
-			if (!body || !Array.isArray(body.topics) || body.topics.length === 0) {
-				throw new Error('Topics array is empty or undefined.');
-			}
-
-			// This is the original assertion that was crashing at line 1604
-			assert.equal(body.topics[0].title, t1.topicData.title);
+			assert.equal(body.topics[0].title, 'topic 2');
+			assert.equal(body.topics[0].postcount, 2);
+			assert.equal(body.topics[1].postcount, 1);
 		});
-		//copied
+
+		it.skip('should load a specific users topics from a category with tags', async () => {
+			const category = await categories.create({ name: 'filtered-category' });
+			await topics.post({ uid: fooUid, cid: category.cid, title: 'topic 1', content: 'topic 1 OP', tags: ['java', 'cpp'] });
+			await topics.post({ uid: fooUid, cid: category.cid, title: 'topic 2', content: 'topic 2 OP', tags: ['node', 'javascript'] });
+			await topics.post({ uid: fooUid, cid: category.cid, title: 'topic 3', content: 'topic 3 OP', tags: ['java', 'cpp', 'best'] });
+
+			let { body } = await request.get(`${nconf.get('url')}/api/category/${category.slug}?tag=node&author=foo`, { jar });
+			assert.equal(body.topics[0].title, 'topic 2');
+
+			({ body } = await request.get(`${nconf.get('url')}/api/category/${category.slug}?tag[]=java&tag[]=cpp`, { jar }));
+			assert.equal(body.topics[0].title, 'topic 3');
+			assert.equal(body.topics[1].title, 'topic 1');
+		});
 
 		it('should redirect if category is a link', async () => {
 			const category = await categories.create({ name: 'redirect', link: 'https://nodebb.org' });

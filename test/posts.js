@@ -516,7 +516,7 @@ describe('Post\'s', () => {
 				meta.config.newbiePostEditDuration = 3600;
 				return;
 			}
-			assert(true);
+			assert(false);
 		});
 
 		it('should edit a deleted post', async () => {

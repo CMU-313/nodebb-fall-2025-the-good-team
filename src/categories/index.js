@@ -12,6 +12,8 @@ const activitypub = require('../activitypub');
 const cache = require('../cache');
 const meta = require('../meta');
 const utils = require('../utils');
+const posts = require('../posts');
+const groups = require('../groups');
 
 const Categories = module.exports;
 
@@ -76,44 +78,12 @@ Categories.getCategoryById = async function (data) {
 	category.hasFollowers = localFollowers ? (localFollowers.uids.size + localFollowers.cids.size) > 0 : localFollowers;
 	category.parent = parent;
 
-	category.unread = false;
-	category['unread-class'] = '';
-	category.cid = category.cid || 0;
-	category.name = category.name || '';
-	category.handle = category.handle || '';
-	category.description = category.description || '';
-	category.descriptionParsed = category.descriptionParsed || '';
-	category.icon = category.icon || '';
-	category.bgColor = category.bgColor || '';
-	category.color = category.color || '';
-	category.slug = category.slug || '';
-	category.parentCid = category.parentCid || 0;
-	category.post_count = category.post_count || 0;
-	category.disabled = category.disabled || 0;
-	category.order = category.order || 0;
-	category.link = category.link || '';
-	category.numRecentReplies = category.numRecentReplies || 0;
-	category.class = category.class || '';
-	category.imageClass = category.imageClass || '';
-	category.isSection = category.isSection || 0;
-	category.minTags = category.minTags || 0;
-	category.maxTags = category.maxTags || 0;
-	category.postQueue = category.postQueue || 0;
-	category.totalPostCount = category.totalPostCount || 0;
-	category.totalTopicCount = category.totalTopicCount || 0;
-	category.subCategoriesPerPage = category.subCategoriesPerPage || 0;
-	category.backgroundImage = category.backgroundImage || null;
-
 	calculateTopicPostCount(category);
 	const result = await plugins.hooks.fire('filter:category.get', {
 		category: category,
 		...data,
 	});
-	return {
-		...result.category,
-		topics: topics.topics,
-		nextStart: topics.nextStart,
-	};
+	return { ...result.category };
 };
 
 Categories.getCidByHandle = async function (handle) {
@@ -138,9 +108,9 @@ Categories.getAllCidsFromSet = async function (key) {
 	return cids.slice();
 };
 
-Categories.getAllCategories = async function () {
+Categories.getAllCategories = async function (uid) {
 	const cids = await Categories.getAllCidsFromSet('categories:cid');
-	return await Categories.getCategories(cids);
+	return await Categories.getCategories(cids, uid);
 };
 
 Categories.getCidsByPrivilege = async function (set, uid, privilege) {
@@ -166,7 +136,7 @@ Categories.getModeratorUids = async function (cids) {
 	return await privileges.categories.getUidsWithPrivilege(cids, 'moderate');
 };
 
-Categories.getCategories = async function (cids) {
+Categories.getCategories = async function (cids, uid) {
 	if (!Array.isArray(cids)) {
 		throw new Error('[[error:invalid-cid]]');
 	}
@@ -179,11 +149,42 @@ Categories.getCategories = async function (cids) {
 		Categories.getCategoriesData(cids),
 		Categories.getTagWhitelist(cids),
 	]);
+    
+	// ADDED FILTER FOR PREVIEWS
+	const mainPids = categories.map(c => c && c.latest_topic && c.latest_topic.mainPid).filter(Boolean);
+    
+	// Fetch visibility data
+	const postData = await posts.getPostsFields(mainPids, ['visibility'], uid);
+	const pidToPostData = _.zipObject(mainPids, postData);
+
+	const isInstructor = await groups.isMember(uid, 'instructors');
+
+	categories.forEach((category) => {
+		if (category && category.latest_topic && category.latest_topic.mainPid) {
+			const post = pidToPostData[category.latest_topic.mainPid];
+			const visibility = post ? post.visibility : null;
+
+			let isVisible = false;
+			if (visibility === 'everyone') {
+				isVisible = true;
+			} else if (visibility === `user:${uid}`) {
+				isVisible = true;
+			} else if (visibility === 'all_instructors' && isInstructor) {
+				isVisible = true;
+			}
+            
+			if (!isVisible) {
+				category.latest_topic = null;
+			}
+		}
+	});
+
 	categories.forEach((category, i) => {
 		if (category) {
 			category.tagWhitelist = tagWhitelist[i];
 		}
 	});
+
 	return categories;
 };
 

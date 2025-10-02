@@ -10,13 +10,46 @@ const notifications = require('../notifications');
 const translator = require('../translator');
 const batch = require('../batch');
 const utils = require('../utils');
+const _ = require('lodash'); 
+const groups = require('../groups'); 
+const posts = require('../posts'); 
 
 module.exports = function (Categories) {
 	Categories.getCategoryTopics = async function (data) {
 		let results = await plugins.hooks.fire('filter:category.topics.prepare', data);
 		const tids = await Categories.getTopicIds(results);
 		let topicsData = await topics.getTopicsByTids(tids, data.uid);
+
+		const isInstructor = await groups.isMember(data.uid, 'instructors');
+		const mainPids = topicsData.map(topic => topic.mainPid);
+		const postData = await posts.getPostsFields(mainPids, ['visibility']);
+		const tidToPostData = _.zipObject(tids, postData);
+
+		//ADDED FOR VISIBIILITY CHECKS
+		topicsData = topicsData.filter((t) => {
+			const post = tidToPostData[t.tid];
+			if (!post || !post.visibility) {
+				return false;
+			}
+
+			if (String(t.uid) === String(data.uid)) return true;
+
+			if (post.visibility === 'everyone') {
+				return true;
+			}
+			if (post.visibility === `user:${data.uid}`) {
+				return true;
+			}
+			if (post.visibility === 'all_instructors' && isInstructor) {
+				return true;
+			}
+			return false;
+		});
+		// END OF VISIBILITY CHECK
+        
 		topicsData = await user.blocks.filter(data.uid, topicsData);
+
+
 
 		if (!topicsData.length) {
 			return { topics: [], uid: data.uid };

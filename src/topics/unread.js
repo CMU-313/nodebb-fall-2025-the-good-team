@@ -14,6 +14,7 @@ const privileges = require('../privileges');
 const meta = require('../meta');
 const utils = require('../utils');
 const plugins = require('../plugins');
+const groups = require('../groups');
 
 module.exports = function (Topics) {
 	Topics.getTotalUnread = async function (uid, filter) {
@@ -41,6 +42,9 @@ module.exports = function (Topics) {
 		if (!topicData.length) {
 			return unreadTopics;
 		}
+		
+
+
 		Topics.calculateTopicIndices(topicData, params.start);
 		unreadTopics.topics = topicData;
 		unreadTopics.nextStart = params.stop + 1;
@@ -131,6 +135,7 @@ module.exports = function (Topics) {
 			return { counts, tids, tidsByFilter, unreadCids };
 		}
 
+
 		const blockedUids = await user.blocks.list(params.uid);
 
 		tids = await filterTidsThatHaveBlockedPosts({
@@ -141,8 +146,35 @@ module.exports = function (Topics) {
 		});
 
 		tids = await privileges.topics.filterTids('topics:read', tids, params.uid);
-		const topicData = (await Topics.getTopicsFields(tids, ['tid', 'cid', 'uid', 'postcount', 'deleted', 'scheduled', 'tags']))
+		let topicData = (await Topics.getTopicsFields(tids, ['tid', 'cid', 'uid', 'postcount', 'deleted', 'scheduled', 'tags', 'mainPid']))
 			.filter(t => t.scheduled || !t.deleted);
+		
+		// ADDED VISIBILITY FILTER
+		const isInstructor = await groups.isMember(params.uid, 'instructors');
+		const mainPids = topicData.map(topic => topic.mainPid);
+		const postData = await posts.getPostsFields(mainPids, ['visibility']);
+		const tidToPostData = _.zipObject(tids, postData);
+
+		const filteredTopics = topicData.filter((t) => {
+			const post = tidToPostData[t.tid];
+			if (!post || !post.visibility) {
+				return false;
+			}
+
+			if (post.visibility === 'everyone') {
+				return true;
+			}
+			if (post.visibility === `user:${params.uid}`) {
+				return true;
+			}
+			if (post.visibility === 'all_instructors' && isInstructor) {
+				return true;
+			}
+			return false;
+		});
+
+		topicData = filteredTopics;
+		// END OF VISIBILITY FILTER
 		const topicCids = _.uniq(topicData.map(topic => topic.cid)).filter(Boolean);
 
 		const categoryWatchState = await categories.getWatchState(topicCids, params.uid);
