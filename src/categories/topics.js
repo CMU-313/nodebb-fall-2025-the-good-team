@@ -32,6 +32,8 @@ module.exports = function (Categories) {
 				return false;
 			}
 
+			if (String(t.uid) === String(data.uid)) return true;
+
 			if (post.visibility === 'everyone') {
 				return true;
 			}
