@@ -551,7 +551,12 @@ Notifications.merge = async function (notifications) {
 					notifications[modifyIndex].path = set[set.length - 1].path;
 				} break;
 
-				case 'new-register':
+				case 'new-register': {
+					const usernames = _.uniq(set.map(notifObj => notifObj && notifObj.user && notifObj.user.displayname));
+					const title = utils.decodeHTMLEntities(notifications[modifyIndex].topicTitle || '');
+					let titleEscaped = title.replace(/%/g, '&#37;').replace(/,/g, '&#44;');
+					titleEscaped = titleEscaped ? (`, ${titleEscaped}`) : '';
+
 					const candidate =
 						`[[notifications:user-posted-to-${typeFromLength(usernames)}, ${usernames.join(', ')}${titleEscaped}]]`;
 
@@ -559,6 +564,8 @@ Notifications.merge = async function (notifications) {
 						notifications[modifyIndex].bodyShort = candidate;
 					}
 					break;
+				}
+					
 			}
 
 			// Filter out duplicates
