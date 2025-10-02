@@ -551,14 +551,11 @@ Notifications.merge = async function (notifications) {
 					notifications[modifyIndex].path = set[set.length - 1].path;
 				} break;
 
-				case 'new-register':
-					const candidate =
-						`[[notifications:user-posted-to-${typeFromLength(usernames)}, ${usernames.join(', ')}${titleEscaped}]]`;
-
-					if (isGenericShort(notifications[modifyIndex].bodyShort)) {
-						notifications[modifyIndex].bodyShort = candidate;
-					}
+				case 'new-register': {
+				// Use a simple bundled message for merged registrations
+					notifications[modifyIndex].bodyShort = `[[notifications:${mergeId}-multiple, ${set.length}]]`;
 					break;
+				}
 			}
 
 			// Filter out duplicates
