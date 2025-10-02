@@ -14,7 +14,7 @@ const authRoutes = require('./authentication');
 const writeRoutes = require('./write');
 const helpers = require('./helpers');
 
-const { setupPageRoute } = helpers; 
+const { setupPageRoute } = helpers;
 
 const _mounts = {
 	user: require('./user'),

@@ -89,6 +89,7 @@ module.exports = function (User) {
 		// For scheduled posts, use "action" time. It'll be updated in related cron job when post is published
 		const lastposttime = postData.timestamp > Date.now() ? Date.now() : postData.timestamp;
 
+		
 		await Promise.all([
 			User.addPostIdToUser(postData),
 			User.setUserField(postData.uid, 'lastposttime', lastposttime),

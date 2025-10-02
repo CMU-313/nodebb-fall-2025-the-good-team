@@ -163,7 +163,7 @@ Notifications.create = async function (data) {
 			text = text.replace(/\s+/g, ' ').trim();
 			if (text) {
 				const words = text.split(/\s+/).filter(Boolean);
-				data.bodyShort = words.slice(0, 5).join(' ') + (words.length > 5 ? '…' : '');
+				data.bodyShort = words.slice(0, 4).join(' ') + (words.length > 4 ? '…' : '');
 			}
 		}
 	} catch (e) {
@@ -552,8 +552,17 @@ Notifications.merge = async function (notifications) {
 				} break;
 
 				case 'new-register': {
-				// Use a simple bundled message for merged registrations
-					notifications[modifyIndex].bodyShort = `[[notifications:${mergeId}-multiple, ${set.length}]]`;
+					const usernames = _.uniq(set.map(notifObj => notifObj && notifObj.user && notifObj.user.displayname));
+					const title = utils.decodeHTMLEntities(notifications[modifyIndex].topicTitle || '');
+					let titleEscaped = title.replace(/%/g, '&#37;').replace(/,/g, '&#44;');
+					titleEscaped = titleEscaped ? (`, ${titleEscaped}`) : '';
+
+					const candidate =
+						`[[notifications:user-posted-to-${typeFromLength(usernames)}, ${usernames.join(', ')}${titleEscaped}]]`;
+
+					if (isGenericShort(notifications[modifyIndex].bodyShort)) {
+						notifications[modifyIndex].bodyShort = candidate;
+					}
 					break;
 				}
 			}

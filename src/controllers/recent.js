@@ -18,7 +18,44 @@ recentController.get = async function (req, res, next) {
 	if (!data) {
 		return next();
 	}
-
+	if (res.locals.isAPI) {
+		if (data.hasOwnProperty('unread')) {
+			delete data.unread;
+		}
+		
+		const payload = {
+			topics: data.topics,
+			nextStart: data.nextStart,
+			topicCount: data.topicCount, 
+			tids: data.tids,
+			canPost: data.canPost,
+			showSelect: data.showSelect,
+			showTopicTools: data.showTopicTools,
+			allCategoriesUrl: data.allCategoriesUrl,
+			selectedCategory: data.selectedCategory,
+			selectedCids: data.selectedCids,
+			selectedTag: data.selectedTag,
+			selectedTags: data.selectedTags,
+			'feeds:disableRSS': data['feeds:disableRSS'],
+			rssFeedUrl: data.rssFeedUrl,
+			title: data.title,
+			filters: data.filters,
+			selectedFilter: data.selectedFilter,
+			selectedTerm: data.selectedTerm,
+			pagination: data.pagination,
+			breadcrumbs: data.breadcrumbs,
+			terms: data.terms,
+			loggedIn: req.loggedIn,
+			loggedInUser: req.loggedIn ? await user.getUserData(req.uid) : null,
+			relative_path: relative_path,
+			template: { name: 'recent' },
+			url: nconf.get('url'),
+			bodyClass: 'page-recent',
+			_header: { tags: { meta: [], link: [] } },
+			widgets: {},
+		};
+		return res.json(payload);
+	}
 	res.render('recent', data);
 };
 
@@ -99,6 +136,9 @@ recentController.getData = async function (req, url, sort) {
 		tags: data.pagination.rel,
 		page: page,
 	});
+	const isLastPage = page >= pageCount;
+	data.nextStart = isLastPage ? -1 : stop + 1;
+
 	return data;
 };
 
