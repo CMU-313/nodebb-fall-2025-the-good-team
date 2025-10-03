@@ -89,8 +89,13 @@ topicsController.get = async function getTopic(req, res, next) {
 	const { start, stop } = calculateStartStop(currentPage, postIndex, settings);
 
 	await topics.getTopicWithPosts(topicData, set, req.uid, start, stop, reverse);
+	
+	const currentUser = await user.getUserFields(req.uid, ['role']);
+	const isInstructorViewer = currentUser.role.toLowerCase() === 'instructor';
+
 	topicData.posts.forEach(post => {
 		post.isEveryone = post.visibility === 'everyone';
+		post.isInstructorViewer = isInstructorViewer; 
 	});
 
 	topics.modifyPostsByPrivilege(topicData, userPrivileges);
