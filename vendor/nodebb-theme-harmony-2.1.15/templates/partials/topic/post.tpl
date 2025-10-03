@@ -56,12 +56,27 @@
 				<span class="badge bg-danger rounded-1">[[user:banned]]</span>
 				{{{ end }}}
 
+
+
 				<div class="d-flex gap-1 align-items-center">
 					<span class="text-muted">{generateWrote(@value, config.timeagoCutoff)}</span>
+					{{{ if posts.isEndorsed }}}
+					{{{ end }}}
 
 					<i component="post/edit-indicator" class="fa fa-edit text-muted{{{ if privileges.posts:history }}} pointer{{{ end }}} edit-icon {{{ if !posts.editor.username }}}hidden{{{ end }}}" title="[[global:edited-timestamp, {isoTimeToLocaleString(./editedISO, config.userLang)}]]"></i>
 					<span data-editor="{posts.editor.userslug}" component="post/editor" class="visually-hidden">[[global:last-edited-by, {posts.editor.username}]] <span class="timeago" title="{isoTimeToLocaleString(posts.editedISO, config.userLang)}"></span></span>
+
+				
+				
 				</div>
+
+
+
+
+
+
+
+
 
 				{{{ if posts.user.custom_profile_info.length }}}
 				<div>
@@ -73,12 +88,21 @@
 					</span>
 				</div>
 				{{{ end }}}
+
+
+
 			</div>
 			<div class="d-flex align-items-center gap-1 justify-content-end">
 				<span class="bookmarked opacity-0 text-primary"><i class="fa fa-bookmark-o"></i></span>
 				<a href="{config.relative_path}/post/{encodeURIComponent(./pid)}" class="post-index text-muted d-none d-md-inline">#{increment(./index, "1")}</a>
 			</div>
 		</div>
+
+
+
+
+
+
 
 		<div class="content text-break" component="post/content" itemprop="text">
 			{posts.content}
@@ -107,11 +131,27 @@
 					<i class="fa fa-fw fa-chevron-down" component="post/replies/open"></i>
 				</a>
 				{{{ end }}}
+
+
 				<div component="post/actions" class="d-flex flex-grow-1 align-items-center justify-content-end gap-1 post-tools">
 					<!-- IMPORT partials/topic/reactions.tpl -->
 					<a component="post/reply" href="#" class="btn btn-ghost btn-sm {{{ if !privileges.topics:reply }}}hidden{{{ end }}}" title="[[topic:reply]]"><i class="fa fa-fw fa-reply text-primary"></i></a>
 					<a component="post/quote" href="#" class="btn btn-ghost btn-sm {{{ if !privileges.topics:reply }}}hidden{{{ end }}}" title="[[topic:quote]]"><i class="fa fa-fw fa-quote-right text-primary"></i></a>
+					
 
+					<!-- Endorse button: visible to everyone, only actionable for instructors -->
+					{{{ if user.isInstructor }}}
+					<a component="post/endorse" 
+							href="#" 
+							class="btn btn-sm endorse-btn btn-success" 
+							title="[[topic:endorse-answer]]"
+					>
+							<i class="fa fa-fw fa-check text-success"></i>
+					</a>
+        	{{{ end }}}
+
+
+				
 					{{{ if ./announces }}}
 					<a component="post/announce-count" href="#" class="btn btn-ghost btn-sm d-flex gap-2 align-items-center" title="[[topic:announcers]]"><i class="fa fa-share-alt text-primary"></i> {./announces}</a>
 					{{{ end }}}
@@ -132,10 +172,12 @@
 						</a>
 						{{{ end }}}
 					</div>
+					
 					{{{ end }}}
 
 					<!-- IMPORT partials/topic/post-menu.tpl -->
 				</div>
+
 			</div>
 
 			<div component="post/replies/container" class="my-2 col-11 border rounded-1 p-3 hidden-empty"></div>
