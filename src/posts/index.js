@@ -1,15 +1,16 @@
 'use strict';
 
+console.log('>>> POSTS FILE HAS STARTED LOADING <<<')
 const _ = require('lodash');
-
 const db = require('../database');
 const utils = require('../utils');
 const user = require('../user');
 const privileges = require('../privileges');
 const plugins = require('../plugins');
+const ENDORSED_POSTS_KEY = 'posts:endorsed'; 
 
 const Posts = module.exports;
-
+// require('./endorse')(Posts);
 require('./data')(Posts);
 require('./create')(Posts);
 require('./delete')(Posts);
@@ -103,5 +104,28 @@ Posts.modifyPostByPrivilege = function (post, privileges) {
 		}
 	}
 };
+
+Posts.getEndorsementStatusUnique = async function (pids) {
+	console.log("Hello") // Keep this for testing if needed
+	if (!Array.isArray(pids) || !pids.length) {
+			return [];
+	}
+	return await db.isSetMembers(ENDORSED_POSTS_KEY, pids);
+};
+
+Posts.toggleEndorsement = async function (pid) {
+	const isEndorsed = await db.isSetMember(ENDORSED_POSTS_KEY, pid);
+	if (isEndorsed) {
+		await db.setRemove(ENDORSED_POSTS_KEY, pid);
+		return false;
+	} 
+	await db.setAdd(ENDORSED_POSTS_KEY, pid);
+	return true;
+};
+
+Posts.isEndorsed = async function (pid) {
+	return await db.isSetMember(ENDORSED_POSTS_KEY, pid);
+};
+
 
 require('../promisify')(Posts);

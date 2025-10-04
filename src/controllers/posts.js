@@ -13,6 +13,7 @@ const helpers = require('./helpers');
 
 const postsController = module.exports;
 
+
 postsController.redirectToPost = async function (req, res, next) {
 	const pid = utils.isNumber(req.params.pid) ? parseInt(req.params.pid, 10) : req.params.pid;
 	if (!pid) {

@@ -160,7 +160,7 @@ Topics.getTopicsByTids = async function (tids, options) {
 
 Topics.getTopicWithPosts = async function (topicData, set, uid, start, stop, reverse) {
 	const [
-		posts,
+		postData,
 		category,
 		tagWhitelist,
 		threadTools,
@@ -189,18 +189,42 @@ Topics.getTopicWithPosts = async function (topicData, set, uid, start, stop, rev
 		Topics.events.get(topicData.tid, uid, reverse),
 	]);
 
+	topicData.posts = postData;
+	// console.log('posts', posts, 'postData', postData)
+	// --- NEW ENDORSEMENT LOGIC STARTS HERE ---
 	let viewerIsInstructor = false;
 	const viewerDataArray = await user.getUsersFields([uid], ['uid', 'role']);
   const viewerData = viewerDataArray[0]; // Get the user object
+	
 
   if (viewerData && viewerData.role) {
         viewerIsInstructor = viewerData.role === 'instructor'; 
   }
 	topicData.viewerIsInstructor = viewerIsInstructor;
-	console.log(`[viewerIsInstructor] UID: ${uid}, Flag: ${topicData.viewerIsInstructor}`)
+	// console.log(`[viewerIsInstructor] UID: ${uid}, Flag: ${topicData.viewerIsInstructor}`)
 
+	const pids = postData.map(p => p.pid);
+	const endorsedStatus = await posts.getEndorsementStatusUnique(pids);
+	
+	// console.log('endorsedStatus:', endorsedStatus);
+
+	postData.forEach((p, index) => {
+		// console.log('p:', p, 'index:', index);
+		
+		p.isEndorsable = viewerIsInstructor; 
+		p.isEndorsed = endorsedStatus[index]; 
+		if (p.isEndorsed) {
+				p.endorsementStatusText = 'Endorsed by Instructor'; 
+		}
+		
+	});
+
+	// --- NEW ENDORSEMENT LOGIC ENDS HERE ---
+	console.log('events', events)
+	
 	topicData.thumbs = thumbs[0];
-	topicData.posts = posts;
+	
+	topicData.posts = postData;
 	topicData.posts.forEach((p) => {
 		p.events = events.filter(
 			event => event.timestamp >= p.eventStart && event.timestamp < p.eventEnd

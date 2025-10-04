@@ -22,6 +22,10 @@ module.exports = function (app, middleware, controllers) {
 	router.get('/unread/total', [...middlewares, middleware.ensureLoggedIn], helpers.tryRoute(controllers.unread.unreadTotal));
 	router.get('/topic/teaser/:topic_id', [...middlewares], helpers.tryRoute(controllers.topics.teaser));
 	router.get('/topic/pagination/:topic_id', [...middlewares], helpers.tryRoute(controllers.topics.pagination));
+	router.post('/api/post/:pid/endorse', helpers.tryRoute(controllers.api.posts.endorse));
+	// router.post('/api/post/:pid/endorse', [...middlewares, middleware.applyCSRF], helpers.tryRoute(controllers.api.posts.endorse));
+	
+
 
 	const multipart = require('connect-multiparty');
 	const multipartMiddleware = multipart();
@@ -32,7 +36,7 @@ module.exports = function (app, middleware, controllers) {
 		middleware.uploads.ratelimit,
 		middleware.applyCSRF,
 	];
-
+	
 	router.post('/post/upload', postMiddlewares, helpers.tryRoute(uploadsController.uploadPost));
 	router.post('/user/:userslug/uploadpicture', [
 		...middlewares,

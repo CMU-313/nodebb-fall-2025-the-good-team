@@ -69,6 +69,7 @@ define('forum/topic', [
 		setupQuickReply();
 		handleBookmark(tid);
 		handleThumbs();
+		addEndorsementHandlers();
 
 		$(window).on('scroll', utils.debounce(updateTopicTitle, 250));
 
@@ -76,6 +77,28 @@ define('forum/topic', [
 
 		hooks.fire('action:topic.loaded', ajaxify.data);
 	};
+
+	function addEndorsementHandlers() {
+    $('.btn-endorse').off('click').on('click', function (e) {
+        e.preventDefault();
+        const $button = $(this);
+        const pid = $button.attr('data-pid');
+
+        api.put(`/posts/${pid}/endorse`, { pid: pid })
+            .then((data) => {
+                // Update UI based on API response
+                updatePostEndorsement(data.pid, data.endorsed);
+            })
+            .catch((err) => {
+                alerts.error(err.message || 'An error occurred.');
+            });
+    });
+
+    // Handle real-time updates from the server (websockets)
+    socket.off('event:post_endorsed').on('event:post_endorsed', (data) => {
+        updatePostEndorsement(data.pid, data.endorsed);
+    });
+  }
 
 	function handleTopicSearch() {
 		require(['mousetrap'], (mousetrap) => {
@@ -170,6 +193,36 @@ define('forum/topic', [
 			});
 		}
 	}
+	function updatePostEndorsement(pid, endorsed) {
+    const postEl = components.get('post/content').parents(`[data-pid="${pid}"]`);
+    const $button = postEl.find('.btn-endorse');
+    const $statusContainer = postEl.find('[component="post/endorsement-status"]');
+
+    $button.attr('data-endorsed', endorsed);
+
+    // Update button text and icon
+    if (endorsed) {
+        $button.find('i').attr('class', 'fa fa-fw fa-star text-success');
+        $button.find('span').text(translator.translate('[[topic:remove-endorsement]]'));
+    } else {
+        $button.find('i').attr('class', 'fa fa-fw fa-star-o text-success');
+        $button.find('span').text(translator.translate('[[topic:endorse-answer]]'));
+    }
+    
+    // Update the status text in the header
+    if (endorsed) {
+        if (!$statusContainer.length) {
+            // If the status element doesn't exist, create and insert it
+            const statusHtml = `<span component="post/endorsement-status" class="endorsement-status badge bg-success text-white rounded-1"><i class="fa fa-check-circle"></i> ${translator.translate('[[topic:endorsement-status-text]]')}</span>`;
+            // Find the most appropriate insertion point relative to time/edit info
+            postEl.find('.post-header .text-muted').first().after(statusHtml); 
+        }
+    } else {
+        // Remove the status element
+        $statusContainer.remove();
+    }
+  }
+
 
 	function handleThumbs() {
 		const listEl = document.querySelector('[component="topic/thumb/list"]');

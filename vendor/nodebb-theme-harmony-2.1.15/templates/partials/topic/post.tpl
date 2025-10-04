@@ -60,12 +60,14 @@
 
 				<div class="d-flex gap-1 align-items-center">
 					<span class="text-muted">{generateWrote(@value, config.timeagoCutoff)}</span>
-					{{{ if posts.isEndorsed }}}
-					{{{ end }}}
 
+					{{{ if posts.endorsementStatusText }}}
+					<span component="post/endorsement-status" class="endorsement-status badge bg-success text-white rounded-1">
+						<i class="fa fa-check-circle"></i> {posts.endorsementStatusText}
+					</span>
+					{{{ end }}}
 					<i component="post/edit-indicator" class="fa fa-edit text-muted{{{ if privileges.posts:history }}} pointer{{{ end }}} edit-icon {{{ if !posts.editor.username }}}hidden{{{ end }}}" title="[[global:edited-timestamp, {isoTimeToLocaleString(./editedISO, config.userLang)}]]"></i>
 					<span data-editor="{posts.editor.userslug}" component="post/editor" class="visually-hidden">[[global:last-edited-by, {posts.editor.username}]] <span class="timeago" title="{isoTimeToLocaleString(posts.editedISO, config.userLang)}"></span></span>
-
 				
 				
 				</div>
@@ -143,13 +145,18 @@
 					{{{ if viewerIsInstructor }}}
 						<a component="post/endorse"
 							href="#"
-							class="btn btn-sm btn-link"  title="[[topic:endorse-answer]]"
+							class="btn btn-sm btn-link btn-endorse"  
+							data-pid="{posts.pid}"
+							data-endorsed="{posts.isEndorsed}"
+							title="[[topic:endorse-answer]]"
 						>
-							<i class="fa fa-fw fa-check text-success"></i>
+							{{{ if posts.isEndorsed }}}
+								<i class="fa fa-fw fa-star text-success"></i> <span class="d-none d-sm-inline">[[topic:remove-endorsement]]</span>
+							{{{ else }}}
+								<i class="fa fa-fw fa-star-o text-success"></i> <span class="d-none d-sm-inline">[[topic:endorse-answer]]</span>
+							{{{ end }}}
 						</a>
 					{{{ end }}}
-
-
 
 				
 					{{{ if ./announces }}}

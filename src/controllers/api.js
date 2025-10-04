@@ -156,3 +156,4 @@ apiController.getModerators = async function (req, res) {
 };
 
 require('../promisify')(apiController, ['getConfig', 'getObject', 'getModerators']);
+exports.posts = require('../api/posts');
