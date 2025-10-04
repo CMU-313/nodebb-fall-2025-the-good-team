@@ -189,6 +189,16 @@ Topics.getTopicWithPosts = async function (topicData, set, uid, start, stop, rev
 		Topics.events.get(topicData.tid, uid, reverse),
 	]);
 
+	let viewerIsInstructor = false;
+	const viewerDataArray = await user.getUsersFields([uid], ['uid', 'role']);
+  const viewerData = viewerDataArray[0]; // Get the user object
+
+  if (viewerData && viewerData.role) {
+        viewerIsInstructor = viewerData.role === 'instructor'; 
+  }
+	topicData.viewerIsInstructor = viewerIsInstructor;
+	console.log(`[viewerIsInstructor] UID: ${uid}, Flag: ${topicData.viewerIsInstructor}`)
+
 	topicData.thumbs = thumbs[0];
 	topicData.posts = posts;
 	topicData.posts.forEach((p) => {

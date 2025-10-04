@@ -139,16 +139,16 @@
 					<a component="post/quote" href="#" class="btn btn-ghost btn-sm {{{ if !privileges.topics:reply }}}hidden{{{ end }}}" title="[[topic:quote]]"><i class="fa fa-fw fa-quote-right text-primary"></i></a>
 					
 
-					<!-- Endorse button: visible to everyone, only actionable for instructors -->
-					{{{ if user.isInstructor }}}
-					<a component="post/endorse" 
-							href="#" 
-							class="btn btn-sm endorse-btn btn-success" 
-							title="[[topic:endorse-answer]]"
-					>
+					
+					{{{ if viewerIsInstructor }}}
+						<a component="post/endorse"
+							href="#"
+							class="btn btn-sm btn-link"  title="[[topic:endorse-answer]]"
+						>
 							<i class="fa fa-fw fa-check text-success"></i>
-					</a>
-        	{{{ end }}}
+						</a>
+					{{{ end }}}
+
 
 
 				
