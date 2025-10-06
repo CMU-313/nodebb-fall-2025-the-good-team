@@ -10,7 +10,6 @@ const notifications = require('../notifications');
 const translator = require('../translator');
 const batch = require('../batch');
 const utils = require('../utils');
-const _ = require('lodash'); 
 const groups = require('../groups'); 
 const posts = require('../posts'); 
 
