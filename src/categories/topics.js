@@ -20,10 +20,25 @@ module.exports = function (Categories) {
 		const tids = await Categories.getTopicIds(results);
 		let topicsData = await topics.getTopicsByTids(tids, data.uid);
 
+		//ADDED FOR PRIVATE POST TAG
+		try {
+			const mainPids$decor = topicsData.map(t => t.mainPid).filter(Boolean);
+			const rows$decor = await posts.getPostsFields(mainPids$decor, ['visibility']); // aligned with mainPids
+			const pidToVis$decor = {};
+			mainPids$decor.forEach((pid, i) => { pidToVis$decor[pid] = rows$decor[i] && rows$decor[i].visibility; });
+
+			topicsData.forEach((t) => {
+				const vis = t.mainPid ? (pidToVis$decor[t.mainPid] || 'everyone') : 'everyone';
+				t.isInstructorOnly = vis === 'all_instructors';
+				t.isPrivateToInstructor = typeof vis === 'string' && vis.startsWith('user:');
+			});
+		} catch (e) {}
+
 		const isInstructor = await groups.isMember(data.uid, 'instructors');
 		const mainPids = topicsData.map(topic => topic.mainPid);
-		const postData = await posts.getPostsFields(mainPids, ['visibility']);
-		const tidToPostData = _.zipObject(tids, postData);
+		const postData = await posts.getPostsFields(mainPids, ['visibility','uid']);
+		const tidToPostData = {};
+		topicsData.forEach((t, i) => { tidToPostData[t.tid] = postData[i]; });
 
 		//ADDED FOR VISIBIILITY CHECKS
 		topicsData = topicsData.filter((t) => {
