@@ -27,7 +27,6 @@ module.exports = function (Posts) {
 
 		// is current user an instructor? 
 		const isInstructor = await groups.isMember(uid, 'instructors');
-		console.log('Current user UID:', uid, 'Is Instructor?', isInstructor);
 		// Filter the post IDs based on the visibility rules
 		const filteredPids = postData
 			.filter((post) => { 
