@@ -63,6 +63,10 @@ SocketPosts.getPostSummaryByPid = async function (socket, data) {
 	return await api.posts.getSummary(socket, { pid });
 };
 
+SocketPosts.toggleVisibility = async function (socket, data) {
+	return await api.posts.toggleVisibility(socket, data);
+};
+
 SocketPosts.getCategory = async function (socket, pid) {
 	return await posts.getCidByPid(pid);
 };

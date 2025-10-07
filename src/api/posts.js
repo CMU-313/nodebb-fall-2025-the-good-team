@@ -22,6 +22,51 @@ const notifications = require('../notifications');
 
 const postsAPI = module.exports;
 
+postsAPI.toggleVisibility = async function (caller, data) {
+	if (!data || !data.pid) {
+		throw new Error('[[error:invalid-data]]');
+	}
+	if (!caller.uid) {
+		throw new Error('[[error:not-logged-in]]');
+	}
+
+	const { pid } = data;
+	const post = await posts.getPostFields(pid, ['visibility', 'uid', 'tid']);
+	if (!post) {
+		throw new Error('[[error:no-post]]');
+	}
+
+	// Only instructors can toggle visibility. Some deployments assign an
+	// instructor role on the user object rather than adding users to an
+	// 'instructors' group, so accept either condition.
+	let isInstructor = false;
+	try {
+		const userData = await user.getUserFields(caller.uid, ['role']);
+		isInstructor = !!(userData && userData.role && String(userData.role).toLowerCase() === 'instructor');
+	} catch (e) {
+		// ignore and fall back to group membership check
+	}
+	if (!isInstructor) {
+		isInstructor = await groups.isMember(caller.uid, 'instructors');
+	}
+	if (!isInstructor) {
+		throw new Error('[[error:no-privileges]]');
+	}
+
+	const newVisibility = post.visibility === 'everyone' ? 'all_instructors' : 'everyone';
+
+	await posts.setPostField(pid, 'visibility', newVisibility);
+
+	// Emit an update to the topic room so clients can refresh if needed
+	try {
+		websockets.in(`topic_${post.tid}`).emit('event:post_visibility_changed', { pid: pid, visibility: newVisibility });
+	} catch (err) {
+		// ignore websocket errors
+	}
+
+	return { pid: pid, visibility: newVisibility };
+};
+
 postsAPI.get = async function (caller, data) {
 	const [userPrivileges, post, voted] = await Promise.all([
 		privileges.posts.get([data.pid], caller.uid),

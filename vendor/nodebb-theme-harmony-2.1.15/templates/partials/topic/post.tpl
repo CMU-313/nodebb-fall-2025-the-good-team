@@ -110,15 +110,15 @@
 				<div component="post/actions" class="d-flex flex-grow-1 align-items-center justify-content-end gap-1 post-tools">
 					<!-- IMPORT partials/topic/reactions.tpl -->
 					
-					{{{ if ./isInstructorViewer }}}
-						<a href="#" class="btn btn-ghost btn-sm toggle-visibility" data-pid="{posts.pid}" data-is-everyone="{posts.isEveryone}">
+					{{{ if (./isInstructorViewer || posts.isCreator) }}}
+						<a href="#" class="btn btn-ghost btn-sm toggle-visibility{{{ if !./isInstructorViewer }}} disabled{{{ end }}}" data-pid="{posts.pid}" data-is-everyone="{{{ posts.isEveryone }}}" title="{{{ if !./isInstructorViewer }}}Only instructors can change visibility{{{ end }}}">
 							{{{ if posts.isEveryone }}}
 								Make Private
 							{{{ else }}}
 								Make Public
 							{{{ end }}}
 						</a>
-					{{{ end }}}
+					{{{ end}}}
 
 					<a component="post/reply" href="#" class="btn btn-ghost btn-sm {{{ if !privileges.topics:reply }}}hidden{{{ end }}}" title="[[topic:reply]]"><i class="fa fa-fw fa-reply text-primary"></i></a>
 					<a component="post/quote" href="#" class="btn btn-ghost btn-sm {{{ if !privileges.topics:reply }}}hidden{{{ end }}}" title="[[topic:quote]]"><i class="fa fa-fw fa-quote-right text-primary"></i></a>

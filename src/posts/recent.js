@@ -49,6 +49,11 @@ module.exports = function (Posts) {
 					return true;
 				}
 
+				// allow post owner to see their own post
+				if (post.uid && String(post.uid) === String(uid)) {
+					return true;
+				}
+
 				// 3. It's for all instructors and the current user is an instructor
 				if (post.visibility === 'all_instructors' && isInstructor) {
 					return true;

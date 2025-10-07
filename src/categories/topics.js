@@ -32,7 +32,11 @@ module.exports = function (Categories) {
 				return false;
 			}
 
+			// allow topic owner
 			if (String(t.uid) === String(data.uid)) return true;
+
+			// allow post owner
+			if (post.uid && String(post.uid) === String(data.uid)) return true;
 
 			if (post.visibility === 'everyone') {
 				return true;

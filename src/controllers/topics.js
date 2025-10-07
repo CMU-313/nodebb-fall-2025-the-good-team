@@ -93,9 +93,11 @@ topicsController.get = async function getTopic(req, res, next) {
 	const currentUser = await user.getUserFields(req.uid, ['role']);
 	const isInstructorViewer = currentUser.role.toLowerCase() === 'instructor';
 
-	topicData.posts.forEach(post => {
+	topicData.posts.forEach((post) => {
 		post.isEveryone = post.visibility === 'everyone';
-		post.isInstructorViewer = isInstructorViewer; 
+		post.isInstructorViewer = isInstructorViewer;
+		// mark whether the current user is the creator of this post
+		post.isCreator = post.user && post.user.uid && String(post.user.uid) === String(req.uid);
 	});
 
 	topics.modifyPostsByPrivilege(topicData, userPrivileges);
