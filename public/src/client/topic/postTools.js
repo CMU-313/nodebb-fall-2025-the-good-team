@@ -202,6 +202,16 @@ define('forum/topic/postTools', [
 					btn.attr('data-is-everyone', isEveryone);
 					btn.text(isEveryone ? 'Make Private' : 'Make Public');
 				}
+
+				const message = result.visibility === 'everyone' ? 
+					'Post is now visible to everyone' :
+					'Post is now only visible to instructors';
+				alerts.alert({
+					type: 'success',
+					timeout: 5000,
+					title: 'Post visibility updated!',
+					message,
+				});
 			});
 			return false;
 		});
