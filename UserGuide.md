@@ -10,7 +10,7 @@ This will activate our custom plugin that creates the instructor and student gro
 The implementation will be centered around the "Comments & Feedback" section in NodeBB. We expect that page to serve as our Q&A forum.
 
 ## Implemented Features
-1. Role Group Registeration
+1. Role Group Registration
 2. Post visibility selection
 3. Post visiblity Alert
 4. Post Notification Preview
@@ -33,12 +33,12 @@ We can verify that the user is actually created into their respective role group
 
 ### Automated testing
 
-The automated testing can be found visibility test at lines ... 
+The automated testing can be found in lines 59-104 of visibility_test.js
 
-The test does ...
+The test simulates Group registration by registering one instructor and one student. The accompanying User Id's (uids) of the instructor and student are stored and will be used for visibility selection testing that follows. The try-catch setup makes sure that the rest of the test suite will not run if the registration is unsuccessful ( the block will fail if the instructor account is not registered and added to Instructor group successfully and student account is not successfully registered and added to Student group). 
 
 File path:
-> test/custom_tests/visibility_tests
+> test/custom_tests/visibility_tests.js
 
 
 ## Post visibility selection
@@ -60,9 +60,11 @@ The user can create a post and select the visibility accordingly. Then, login to
 
 ### Automated testing
 
-The automated testing can be found visibility test at lines ... 
+The automated testing can be found in lines 107-200 of visibility_test.js
 
-The test does ...
+This test checks the dropdown input is being processed properly. A visibility key is captured when a selection that is not 'everyone' occurs. If the user selects 'all-instructors' or 'user:UID' (which indicates a specific intructor for this case) the test navigates to the post's edit page and reads the saved uid from the vibility dropdown. An assertion is then run to check the saved value is 'all-instructors' or a specific user/instructor. 
+
+The second part is an output check where the test checks that a user whose uid is not included in the post's authorized viewer list. The test reads the page body and asserts whether content is missing or if text is visible (correctness is determined if their uid is present or not) A uid included in the authorized viewer list will be tested on being able to view said post, but a uid not included in the authorized viewer list should correctly be denied access/ see nothing. This test is run on both instructors and students. 
 
 File path:
 > test/custom_tests/visibility_tests.js
@@ -79,12 +81,12 @@ Post a post and select the respective visibility option. Observe the notificatio
 
 ### Automated testing
 
-The automated testing can be found visibility test at lines ... 
+The automated testing can be found at lines ...
 
 The test does ...
 
 File path:
-> test/custom_tests/visibility_tests.js
+> test/custom_tests/
 
 
 ## Post Notification Preview
@@ -101,12 +103,12 @@ Use the @ to mention a specific user in one account. Login to the account that i
 
 ### Automated testing
 
-The automated testing can be found visibility test at lines ... 
+The automated testing can be found at lines ... 
 
 The test does ...
 
 File path:
-> test/custom_tests/visibility_tests.js
+> test/custom_tests/
 
 
 ## Post visibility tag
