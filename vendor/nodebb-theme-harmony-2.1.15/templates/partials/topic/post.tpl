@@ -141,22 +141,20 @@
 					<a component="post/quote" href="#" class="btn btn-ghost btn-sm {{{ if !privileges.topics:reply }}}hidden{{{ end }}}" title="[[topic:quote]]"><i class="fa fa-fw fa-quote-right text-primary"></i></a>
 					
 
-					
 					{{{ if viewerIsInstructor }}}
-						<a component="post/endorse"
-							href="#"
-							class="btn btn-sm btn-link btn-endorse"  
-							data-pid="{posts.pid}"
-							data-endorsed="{posts.isEndorsed}"
-							title="[[topic:endorse-answer]]"
+						<button component="post/endorse" 
+						class="btn btn-sm btn-ghost btn-endorse {{{ if posts.isEndorsed }}}endorsed{{{ end }}}"
+						data-pid="{posts.pid}"
+						title="{{{ if posts.isEndorsed }}}[[topic:remove-endorsement]]{{{ else }}}[[topic:endorse-answer]]{{{ end }}}"
 						>
-							{{{ if posts.isEndorsed }}}
+						{{{ if posts.isEndorsed }}}
 								<i class="fa fa-fw fa-star text-success"></i> <span class="d-none d-sm-inline">[[topic:remove-endorsement]]</span>
-							{{{ else }}}
-								<i class="fa fa-fw fa-star-o text-success"></i> <span class="d-none d-sm-inline">[[topic:endorse-answer]]</span>
-							{{{ end }}}
-						</a>
+						{{{ else }}}
+								<i class="fa fa-fw fa-star-o text-muted"></i> <span class="d-none d-sm-inline">[[topic:endorse-answer]]</span>
+						{{{ end }}}
+							</button>
 					{{{ end }}}
+
 
 				
 					{{{ if ./announces }}}

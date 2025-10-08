@@ -8,6 +8,8 @@ const helpers = require('./helpers');
 module.exports = function (app, middleware, controllers) {
 	const middlewares = [middleware.autoLocale, middleware.authenticateRequest];
 	const router = express.Router();
+	// new endorse
+	const postsEndorse = require('../api/posts'); 
 	app.use('/api', router);
 
 	router.get('/config', [...middlewares, middleware.applyCSRF], helpers.tryRoute(controllers.api.getConfig));
@@ -22,8 +24,7 @@ module.exports = function (app, middleware, controllers) {
 	router.get('/unread/total', [...middlewares, middleware.ensureLoggedIn], helpers.tryRoute(controllers.unread.unreadTotal));
 	router.get('/topic/teaser/:topic_id', [...middlewares], helpers.tryRoute(controllers.topics.teaser));
 	router.get('/topic/pagination/:topic_id', [...middlewares], helpers.tryRoute(controllers.topics.pagination));
-	router.post('/api/post/:pid/endorse', helpers.tryRoute(controllers.api.posts.endorse));
-	// router.post('/api/post/:pid/endorse', [...middlewares, middleware.applyCSRF], helpers.tryRoute(controllers.api.posts.endorse));
+	router.put('/posts/:pid/endorse', [...middlewares, middleware.applyCSRF], helpers.tryRoute(postsEndorse.endorse));
 	
 
 
