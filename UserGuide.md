@@ -12,10 +12,11 @@ The implementation will be centered around the "Comments & Feedback" section in 
 ## Implemented Features
 1. Role Group Registeration
 2. Post visibility selection
-3. Post Notification Preview
-4. Post visibility tag
-5. Endorsement Response
-6. Post visibility toggle
+3. Post visiblity Alert
+4. Post Notification Preview
+5. Post visibility tag
+6. Endorsement Response
+7. Post visibility toggle
 
 Please navigate to each section to read about the implementation details and the related tests.
 
@@ -65,6 +66,26 @@ The test does ...
 
 File path:
 > test/custom_tests/visibility_tests.js
+
+## Post Visiblity Alert
+
+### How to use?
+
+This feature shows a confirmation of what visibility choice the user selected when the user submit the post. There is an alert on the bottom right of the screen. The alert will indicate the visibility choice according to what the user chose. This will help user verifies that they did actually target the right group of audience when posting.
+
+### How to test?
+
+Post a post and select the respective visibility option. Observe the notification alert at the bottom right screen that will appear for ~5 seconds. It should say the visibility option you chose.
+
+### Automated testing
+
+The automated testing can be found visibility test at lines ... 
+
+The test does ...
+
+File path:
+> test/custom_tests/visibility_tests.js
+
 
 ## Post Notification Preview
 
