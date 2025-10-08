@@ -86,4 +86,8 @@ $(document).ready(function () {
 			composer.enhance(data.container);
 		});
 	});
+
+	require(['endorsement'], function (endorsement) {
+		endorsement.init();
+	});
 });

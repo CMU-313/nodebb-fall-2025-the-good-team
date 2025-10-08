@@ -17,6 +17,8 @@ const utils = require.main.require('./src/utils');
 const helpers = require.main.require('./src/controllers/helpers');
 const SocketPlugins = require.main.require('./src/socket.io/plugins');
 const socketMethods = require('./websockets');
+// Added db 
+const db = require.main.require('./src/database');
 
 const plugin = module.exports;
 
@@ -27,6 +29,24 @@ plugin.init = async function (data) {
 	const routeHelpers = require.main.require('./src/routes/helpers');
 	const controllers = require('./controllers');
 	SocketPlugins.composer = socketMethods;
+	// Add endorsement API route
+	router.put('/posts/:pid/endorse', async (req, res) => {
+		try {
+			if (!req.uid) {
+				return res.status(401).json({ error: 'Not authenticated' });
+			}
+            
+			const result = await plugin.toggleEndorsement(req.params.pid, req.uid);
+			res.json(result);
+		} catch (err) {
+			console.error('Endorsement error:', err);
+			res.status(500).json({ error: err.message });
+		}
+	});
+	// Add endorsement API route
+
+
+
 	routeHelpers.setupAdminPageRoute(router, '/admin/plugins/composer-default', controllers.renderAdminPage);
 };
 
@@ -61,6 +81,97 @@ plugin.addPrefetchTags = async function (hookData) {
 
 	return hookData;
 };
+// Add endorsement data to posts
+plugin.addEndorsementData = async function (hookData) {
+	const { posts: postsData, uid } = hookData;
+    
+	if (!postsData) {
+		return hookData;}
+    
+	const isInstructor = await plugin.isUserInstructor(uid);
+    
+	if (Array.isArray(postsData)) {
+		await Promise.all(postsData.map(async (post) => {
+			if (post && post.pid) {
+				post.isEndorsed = await plugin.isPostEndorsed(post.pid);
+				post.viewerIsInstructor = isInstructor;
+			}
+		}));
+	} else if (postsData && postsData.pid) {
+		postsData.isEndorsed = await plugin.isPostEndorsed(postsData.pid);
+		postsData.viewerIsInstructor = isInstructor;
+	}
+    
+	return hookData;
+};
+
+// Check if user is instructor (moderator or admin)
+plugin.isUserInstructor = async function (uid) {
+	if (!uid || parseInt(uid, 10) <= 0) {
+		return false;
+	}
+    
+	try {
+		const [isAdmin, isGlobalMod] = await Promise.all([
+			user.isAdministrator(uid),
+			user.isGlobalModerator(uid),
+		]);
+		return isAdmin || isGlobalMod;
+	} catch (err) {
+		console.error('Error checking instructor status:', err);
+		return false;
+	}
+};
+
+// Check if post is endorsed
+plugin.isPostEndorsed = async function (pid) {
+	if (!pid) {
+		return false;
+	}
+    
+	try {
+		const endorsed = await db.getObjectField(`post:${pid}`, 'endorsed');
+		return endorsed === '1';
+	} catch (err) {
+		console.error('Error checking endorsement status:', err);
+		return false;
+	}
+};
+
+
+// Toggle post endorsement
+plugin.toggleEndorsement = async function (pid, uid) {
+	if (!pid || !uid) {
+		throw new Error('Invalid post ID or user ID');
+	}
+    
+	const isInstructor = await plugin.isUserInstructor(uid);
+	if (!isInstructor) {
+		throw new Error('Only instructors can endorse posts');
+	}
+    
+	const currentlyEndorsed = await plugin.isPostEndorsed(pid);
+	const newEndorsedState = !currentlyEndorsed;
+    
+	await db.setObjectField(`post:${pid}`, 'endorsed', newEndorsedState ? '1' : '0');
+    
+	// Emit real-time update
+	const socketio = require.main.require('./src/socket.io');
+	const postData = await posts.getPostData(pid);
+	if (postData && postData.tid) {
+		socketio.in(`topic_${postData.tid}`).emit('event:post_endorsed', {
+			pid: parseInt(pid, 10),
+			endorsed: newEndorsedState,
+		});
+	}
+    
+	return {
+		pid: parseInt(pid, 10),
+		endorsed: newEndorsedState,
+	};
+};
+
+
 
 plugin.getFormattingOptions = async function () {
 	const defaultVisibility = {
@@ -323,3 +434,130 @@ async function cidFromQuery(query) {
 	}
 	return null;
 }
+
+// Register socket handlers for endorsement feature
+SocketPlugins.endorsement = {};
+    
+SocketPlugins.endorsement.checkTopic = async function (socket, data) {
+    if (!data || !data.tid) {
+        throw new Error('[[error:invalid-data]]');
+    }
+        
+    try {
+        // Get post IDs for the topic
+        const pids = await db.getSortedSetRange('tid:' + data.tid + ':posts', 0, -1);
+            
+        if (!pids || pids.length === 0) {
+            return {
+                tid: data.tid,
+                hasEndorsement: false
+            };
+        }
+            
+        // Get posts data
+        const postsData = await posts.getPostsData(pids);
+        const hasEndorsement = postsData && postsData.some(post => post && post.upvotes > 0);
+            
+        return {
+            tid: data.tid,
+            hasEndorsement: hasEndorsement
+        };
+    } catch (err) {
+        console.error('Error checking topic endorsement:', err);
+        return {
+            tid: data.tid,
+            hasEndorsement: false
+        };
+    }
+};
+
+plugin.addEndorsementTags = async function (hookData) {
+    const { posts } = hookData;
+    
+    if (!posts || !Array.isArray(posts)) {
+        return hookData;
+    }
+
+    // Add endorsement flag to posts with upvotes > 0
+    posts.forEach(post => {
+        if (post && typeof post.upvotes === 'number' && post.upvotes > 0) {
+            post.hasEndorsement = true;
+            post.endorsementLevel = getEndorsementLevel(post.upvotes);
+        } else {
+            post.hasEndorsement = false;
+        }
+    });
+
+    return hookData;
+};
+
+function getEndorsementLevel(upvotes) {
+    if (upvotes >= 10) {
+        return 'high';
+    } else if (upvotes >= 5) {
+        return 'medium';
+    } else if (upvotes > 0) {
+        return 'low';
+    }
+    return 'none';
+}
+
+// Add other existing plugin methods here...
+
+plugin.onPostUpvote = async function (hookData) {
+    const { post, uid } = hookData;
+    
+    if (!post || !post.pid) {
+        return;
+    }
+    
+    try {
+        // Get updated post data with vote counts
+        const postData = await posts.getPostData(post.pid);
+        
+        // Emit real-time update for endorsement status
+        const socketio = require.main.require('./src/socket.io');
+        if (postData && postData.tid) {
+            const hasEndorsement = postData.upvotes > 0;
+            const endorsementLevel = hasEndorsement ? getEndorsementLevel(postData.upvotes) : 'none';
+            
+            socketio.in(`topic_${postData.tid}`).emit('event:endorsement_updated', {
+                pid: parseInt(post.pid, 10),
+                hasEndorsement: hasEndorsement,
+                endorsementLevel: endorsementLevel,
+                upvotes: postData.upvotes
+            });
+        }
+    } catch (err) {
+        console.error('Error handling post upvote for endorsement:', err);
+    }
+};
+
+plugin.onPostUnvote = async function (hookData) {
+    const { post, uid } = hookData;
+    
+    if (!post || !post.pid) {
+        return;
+    }
+    
+    try {
+        // Get updated post data with vote counts
+        const postData = await posts.getPostData(post.pid);
+        
+        // Emit real-time update for endorsement status
+        const socketio = require.main.require('./src/socket.io');
+        if (postData && postData.tid) {
+            const hasEndorsement = postData.upvotes > 0;
+            const endorsementLevel = hasEndorsement ? getEndorsementLevel(postData.upvotes) : 'none';
+            
+            socketio.in(`topic_${postData.tid}`).emit('event:endorsement_updated', {
+                pid: parseInt(post.pid, 10),
+                hasEndorsement: hasEndorsement,
+                endorsementLevel: endorsementLevel,
+                upvotes: postData.upvotes
+            });
+        }
+    } catch (err) {
+        console.error('Error handling post unvote for endorsement:', err);
+    }
+};
