@@ -90,9 +90,11 @@ topicsController.get = async function getTopic(req, res, next) {
 
 	await topics.getTopicWithPosts(topicData, set, req.uid, start, stop, reverse);
 	
-	const currentUser = await user.getUserFields(req.uid, ['role']);
-	const isInstructorViewer = currentUser.role.toLowerCase() === 'instructor';
-
+	let isInstructorViewer = false;
+	if (req.uid && req.uid > 0) {
+		const currentUser = await user.getUserFields(req.uid, ['role']);
+		isInstructorViewer = currentUser && currentUser.role && currentUser.role.toLowerCase() === 'instructor';
+	}
 	topicData.posts.forEach((post) => {
 		post.isEveryone = post.visibility === 'everyone';
 		post.isInstructorViewer = isInstructorViewer;
