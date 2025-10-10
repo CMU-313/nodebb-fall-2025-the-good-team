@@ -150,12 +150,12 @@ File path:
 
 ### Automated testing
 
-The automated testing can be found visibility test at lines ... 
+The automated testing can be found on line 44-92 the endorsement_tests.js test file.
 
-The test does ...
+This test suite verifies the behavior of the endorsement feature. It first tests the logic that maps the number of upvotes to an endorsement level, ensuring that zero or negative upvotes return "none", 1–2 upvotes return "good", 3–5 upvotes return "very-helpful", and 6 or more upvotes return "high". The suite then tests the logic of updating post endorsements, confirming that a badge is shown when a post has positive upvotes and removed when upvotes are zero.
 
 File path:
-> test/custom_tests/visibility_tests.js
+> test/custom_tests/endorsement_tests.js
 
 
 ## Post visibility toggle
