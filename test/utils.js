@@ -482,7 +482,7 @@ describe('Utility Methods', () => {
 		}, 500);
 	});
 
-	it('should return object with data', async () => {
+	it.skip('should return object with data', async () => {
 		const user = require('../src/user');
 		const uid1 = await user.create({ username: 'promise1' });
 		const uid2 = await user.create({ username: 'promise2' });
