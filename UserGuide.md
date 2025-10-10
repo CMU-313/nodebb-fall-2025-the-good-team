@@ -33,9 +33,9 @@ We can verify that the user is actually created into their respective role group
 
 ### Automated testing
 
-The automated testing can be found in lines 59-104 of visibility_test.js
+The automated testing can be found in lines 5-20 of visibility_test.js
 
-The test simulates Group registration by registering one instructor and one student. The accompanying User Id's (uids) of the instructor and student are stored and will be used for visibility selection testing that follows. The try-catch setup makes sure that the rest of the test suite will not run if the registration is unsuccessful ( the block will fail if the instructor account is not registered and added to Instructor group successfully and student account is not successfully registered and added to Student group). 
+Most of the testing for the visibility function tests the actual logic of who is restricted to posts, but the canViewPost function to set up these tests verifies the dropdown logic implemented. Lines 5-20 check that dependent upon user selection- the correct user role is established and the uid is stored as a viewer of said post. 
 
 File path:
 > test/custom_tests/visibility_tests.js
@@ -60,11 +60,9 @@ The user can create a post and select the visibility accordingly. Then, login to
 
 ### Automated testing
 
-The automated testing can be found in lines 107-200 of visibility_test.js
+The automated testing can be found in lines 34-78 of visibility_test.js
 
-This test checks the dropdown input is being processed properly. A visibility key is captured when a selection that is not 'everyone' occurs. If the user selects 'all-instructors' or 'user:UID' (which indicates a specific intructor for this case) the test navigates to the post's edit page and reads the saved uid from the vibility dropdown. An assertion is then run to check the saved value is 'all-instructors' or a specific user/instructor. 
-
-The second part is an output check where the test checks that a user whose uid is not included in the post's authorized viewer list. The test reads the page body and asserts whether content is missing or if text is visible (correctness is determined if their uid is present or not) A uid included in the authorized viewer list will be tested on being able to view said post, but a uid not included in the authorized viewer list should correctly be denied access/ see nothing. This test is run on both instructors and students. 
+This test confirms that the visibility restrictions chosen from the dropdown are applied correctly and that only specified users are able to view posts. Tests 1-2 and their subtests verify that within students are not able to see posts sent to specific instructors or 'all instructors' and instructors are not able to see posts that are sent to another instructor. The 3rd test verifies that both students and instructors are able to see a post if it is marked to be viewable by 'everyone' 
 
 File path:
 > test/custom_tests/visibility_tests.js
@@ -81,12 +79,12 @@ Post a post and select the respective visibility option. Observe the notificatio
 
 ### Automated testing
 
-The automated testing can be found at lines ...
+The automated testing can be found at lines 26-65 of alertvisibility.js
 
-The test does ...
+The test is a unit testing suite comprised of 5 tests. Tests 1-3 handle the specific visibility constraints and checks that the correct alert specifying the group posted to is displayed. For example, the second test checks that in the event a post is marked for 'all-instructors,' the appropriate "Posted only to all instructors" is displayed in the alert box. The 4th and 5th tests check that when a specific visibility or user is not specified as a recipient of the post, then the generic "post successfully submitted" alert is displayed. 
 
 File path:
-> test/custom_tests/
+> test/custom_tests/alertvisibility.js
 
 
 ## Post Notification Preview
@@ -103,12 +101,12 @@ Use the @ to mention a specific user in one account. Login to the account that i
 
 ### Automated testing
 
-The automated testing can be found at lines ... 
+The automated testing can be found at lines 30-72 of notifpreview.js 
 
-The test does ...
+The test handles 5 different scenarios for the notification preview logic dependent on the length of the message. For context, users are now able to preview their message in the notifications dropdown, but this preview only shows the first four words of the message. Tests 1-2 handle this check and ensure that messages over four words display the first four words and then an ellipses (...) to show there is more to the message, and messages with exactly four words or under are displayed as is. Test 4 also applies for shorter messages and makes sure there are no additional punctuation edits to messages under four words. Test 3 verifies the removal of HTML tags in the preview and Test 5 ensures that an empty message will display nothing in the preview as well. 
 
 File path:
-> test/custom_tests/
+> test/custom_tests/notifpreview.js
 
 
 ## Post visibility tag
