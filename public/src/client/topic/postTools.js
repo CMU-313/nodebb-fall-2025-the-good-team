@@ -184,6 +184,38 @@ define('forum/topic/postTools', [
 			});
 		});
 
+		// Toggle visibility (instructors only)
+		postContainer.on('click', '.toggle-visibility', function (e) {
+			e.preventDefault();
+			const btn = $(this);
+			if (btn.hasClass('disabled')) {
+				return false;
+			}
+			const pid = btn.attr('data-pid');
+			socket.emit('posts.toggleVisibility', { pid: pid }, function (err, result) {
+				if (err) {
+					return alerts.error(err);
+				}
+				// update button text based on new visibility
+				if (result && result.visibility) {
+					const isEveryone = result.visibility === 'everyone';
+					btn.attr('data-is-everyone', isEveryone);
+					btn.text(isEveryone ? 'Make Private' : 'Make Public');
+				}
+
+				const message = result.visibility === 'everyone' ? 
+					'Post is now visible to everyone' :
+					'Post is now only visible to instructors';
+				alerts.alert({
+					type: 'success',
+					timeout: 5000,
+					title: 'Post visibility updated!',
+					message,
+				});
+			});
+			return false;
+		});
+
 		postContainer.on('click', '[component="post/edit"]', function () {
 			const btn = $(this);
 

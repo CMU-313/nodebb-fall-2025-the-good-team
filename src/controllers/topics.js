@@ -89,6 +89,18 @@ topicsController.get = async function getTopic(req, res, next) {
 	const { start, stop } = calculateStartStop(currentPage, postIndex, settings);
 
 	await topics.getTopicWithPosts(topicData, set, req.uid, start, stop, reverse);
+	
+	let isInstructorViewer = false;
+	if (req.uid && req.uid > 0) {
+		const currentUser = await user.getUserFields(req.uid, ['role']);
+		isInstructorViewer = currentUser && currentUser.role && currentUser.role.toLowerCase() === 'instructor';
+	}
+	topicData.posts.forEach((post) => {
+		post.isEveryone = post.visibility === 'everyone';
+		post.isInstructorViewer = isInstructorViewer;
+		// mark whether the current user is the creator of this post
+		post.isCreator = post.user && post.user.uid && String(post.user.uid) === String(req.uid);
+	});
 
 	topics.modifyPostsByPrivilege(topicData, userPrivileges);
 	topicData.tagWhitelist = categories.filterTagWhitelist(topicData.tagWhitelist, userPrivileges.isAdminOrMod);
