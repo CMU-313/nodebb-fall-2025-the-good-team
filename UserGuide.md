@@ -171,9 +171,9 @@ Log in as an instructor and click on a student post and then click the button. A
 
 ### Automated testing
 
-The automated testing can be found in the visibility_toggle.js test file.
+The automated testing can be found on lines 78-129  in the visibility_toggle.js test file.
 
-This test suite verifies the behavior of the post visibility toggle button and consists of four tests. The first test ensures that clicking the button emits the correct socket event with the post ID. The second and third tests verify that the button text updates according to the resulting visibility and that the appropriate success alert messages are triggered. The fourth test checks that an error does not cause a crash.
+This test suite verifies the full integration between the post visibility toggle button’s user interface and backend logic. It has 4 tests. The first one ensures that clicking the button correctly emits a socket event. The second and third test check that button text and visibility get changed. These tests also ensure the appropriate success alert messages are being displayed. The last test is an error-handling test to confirm that any server error triggers an alert without causing a crash.
 
 File path:
 > test/custom_tests/visibility_toggle.js
