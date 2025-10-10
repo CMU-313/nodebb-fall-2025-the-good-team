@@ -18,7 +18,7 @@ The implementation will be centered around the "Comments & Feedback" section in 
 6. Endorsement Response
 7. Post visibility toggle
 
-Please navigate to each section to read about the implementation details and the related tests.
+Please navigate to each section to read about the implementation details and the related tests. Each feature has multiple tests to insure sufficent coverage of their basic implementiation, this is further explained below. 
 
 ## Role Group Registeration 
 
