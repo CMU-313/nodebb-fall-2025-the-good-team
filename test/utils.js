@@ -92,42 +92,37 @@ describe('Utility Methods', () => {
 	});
 
 	describe('email validation', () => {
-		it('accepts sample address', (done) => {
+		it('accepts sample address', () => {
 			const email = 'sample@example.com';
 			assert(utils.isEmailValid(email), 'invalid email');
-			done();
 		});
 
-		it('rejects empty address', (done) => {
+		it('rejects empty address', () => {
 			const email = '';
 			assert.equal(utils.isEmailValid(email), false, 'accepted as valid email');
-			done();
 		});
 	});
 
-	describe('UUID generation / secureRandom', (done) => {
+	describe('UUID generation / secureRandom', () => {
 		it('return unique random value every time', () => {
 			delete require.cache[require.resolve('../src/utils')];
 			const { generateUUID } = require('../src/utils');
 			const uuid1 = generateUUID();
 			const uuid2 = generateUUID();
 			assert.notEqual(uuid1, uuid2, 'matches');
-			done();
 		});
 
-		it('should return a random number between 1-10 inclusive', (done) => {
+		it('should return a random number between 1-10 inclusive', () => {
 			const { secureRandom } = require('../src/utils');
 			const r1 = secureRandom(1, 10);
 			assert(r1 >= 1);
 			assert(r1 <= 10);
-			done();
 		});
 
-		it('should always return 3', (done) => {
+		it('should always return 3', () => {
 			const { secureRandom } = require('../src/utils');
 			const r1 = secureRandom(3, 3);
 			assert.strictEqual(r1, 3);
-			done();
 		});
 	});
 
@@ -154,14 +149,13 @@ describe('Utility Methods', () => {
 		done();
 	});
 
-	it('should get language key', (done) => {
+	it('should get language key', () => {
 		assert.strictEqual(utils.getLanguage(), 'en-GB');
 		global.window.utils = {};
 		global.window.config = { userLang: 'tr' };
 		assert.strictEqual(utils.getLanguage(), 'tr');
 		global.window.config = { defaultLang: 'de' };
 		assert.strictEqual(utils.getLanguage(), 'de');
-		done();
 	});
 
 	it('should return true if string has language key', (done) => {
@@ -174,17 +168,15 @@ describe('Utility Methods', () => {
 		done();
 	});
 
-	it('should return bootstrap env', (done) => {
+	it('should return bootstrap env', () => {
 		assert.strictEqual(utils.findBootstrapEnvironment(), 'xs');
-		done();
 	});
 
-	it('should check if mobile', (done) => {
+	it('should check if mobile', () => {
 		assert.strictEqual(utils.isMobile(), true);
-		done();
 	});
 
-	it('should check password validity', (done) => {
+	it('should check password validity', () => {
 		global.ajaxify = {
 			data: {
 				minimumPasswordStrength: 1,
@@ -206,12 +198,10 @@ describe('Utility Methods', () => {
 		check('asd', '[[reset_password:password-too-short]]');
 		check(new Array(513).fill('a').join(''), '[[error:password-too-long]]');
 		utils.assertPasswordValidity('Yzsh31j!a', zxcvbn);
-		done();
 	});
 
-	it('should generate UUID', (done) => {
+	it('should generate UUID', () => {
 		assert(validator.isUUID(utils.generateUUID()));
-		done();
 	});
 
 	it('should shallow merge two objects', (done) => {
@@ -343,7 +333,7 @@ describe('Utility Methods', () => {
 		done();
 	});
 
-	it.skip('should get the full URLSearchParams object', async () => {
+	it('should get the full URLSearchParams object', async () => {
 		const params = utils.params({ url: 'http://nodebb.org?foo=1&bar=test&herp[]=2&herp[]=3', full: true });
 		assert(params instanceof URLSearchParams);
 		assert.strictEqual(params.get('foo'), '1');
@@ -492,7 +482,7 @@ describe('Utility Methods', () => {
 		}, 500);
 	});
 
-	it.skip('should return object with data', async () => {
+	it('should return object with data', async () => {
 		const user = require('../src/user');
 		const uid1 = await user.create({ username: 'promise1' });
 		const uid2 = await user.create({ username: 'promise2' });
