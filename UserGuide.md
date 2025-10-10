@@ -116,7 +116,7 @@ File path:
 ### How to use?
 This feature marks the post with the corresponding visibility tag that the post was selected with. In the "Comments & Feedback" section, the posts with instructor-only or a specific instructor will have a tag next to the title to indicate the visibility of the post.
 
-This feature doesn't require any user aciton, and is an additional feature added to enhance the visibility selection to help instructors distinguish public from private posts.
+This feature doesn't require any user action, and is an additional feature added to enhance the visibility selection to help instructors distinguish public from private posts.
 
 ### How to test?
 
@@ -131,14 +131,23 @@ The test verifies the correct behavior by simulating a post with the respective 
 File path:
 > test/custom_tests/badgetemplate.js
 
+
 ## Endorsement Response
 
+This feature allows users to show upvotes another user's post. If a post has a positive amount of upvotes, a "Good" (1-2), "Very Helpful"(3-5), or "High"(6+) tag will show up beside the post, showing users what posts are of high quality. 
 
 ### How to use?
+Log in as a registered user. Navigate the to "Comments and Feedback" category. Navigate to any post and press the upvote button. If the post previously had no upvotes, pressing the upvote button will trigger the "Good" tag to show up. If the post previously had 2 upvotes, pressing the upvote button will trigger the "Very Helpful" tag to show up. If the post previously had 5 upvotes, pressing the upvote button will trigger the "High" tag to show up.
+
 
 
 ### How to test?
 
+The automated testing can be found in the endorsement_tests.js test file
+This set of tests validates the logic that determines the badge level based on the total number of upvotes a post has received. First, tt verifies that 1 or 2 upvotes map to the "Good" badge level. Second, it verifies that 3, 4, or 5 upvotes map to the "Very Helpful" badge level. Lastly, it verifies that 6 or more upvotes (up to 100+) map to the highest badge level, "High". 
+
+File path:
+> test/custom_tests/endorsement_tests.js
 
 
 ### Automated testing
