@@ -111,8 +111,7 @@
 					<!-- IMPORT partials/topic/reactions.tpl -->
 					
 					{{{ if (./isInstructorViewer || posts.isCreator) }}}
-						<a href="#" class="btn btn-ghost btn-sm toggle-visibility{{{ if !./isInstructorViewer }}} disabled{{{ end }}}" data-pid="{posts.pid}" data-is-everyone="{{{ posts.isEveryone }}}" title="{{{ if !./isInstructorViewer }}}Only instructors can change visibility{{{ end }}}">
-							{{{ if posts.isEveryone }}}
+						<a href="#" class="btn btn-ghost btn-sm toggle-visibility{{{ if !./isInstructorViewer }}} disabled{{{ end }}}" data-pid="{posts.pid}" data-is-everyone="{posts.isEveryone}" title="{{{ if !./isInstructorViewer }}}Only instructors can change visibility{{{ end }}}">							{{{ if posts.isEveryone }}}
 								Make Private
 							{{{ else }}}
 								Make Public
