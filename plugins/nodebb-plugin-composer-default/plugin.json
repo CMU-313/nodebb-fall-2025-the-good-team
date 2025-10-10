@@ -9,7 +9,10 @@
 		{ "hook": "filter:config.get", "method": "appendConfig" },
 		{ "hook": "filter:composer.build", "method": "filterComposerBuild" },
 		{ "hook": "filter:admin.header.build", "method": "addAdminNavigation" },
-		{ "hook": "filter:meta.getLinkTags", "method": "addPrefetchTags" }
+		{ "hook": "filter:meta.getLinkTags", "method": "addPrefetchTags" },
+		{ "hook": "filter:posts.getPosts", "method": "addEndorsementTags" },
+		{ "hook": "action:post.upvote", "method": "onPostUpvote" },
+		{ "hook": "action:post.unvote", "method": "onPostUnvote" }
 	],
 	"scss": [
 		"./static/scss/composer.scss"
@@ -17,6 +20,7 @@
 	"scripts": [
 		"./static/lib/client.js",
 		"./static/lib/visibility.js",
+		"./static/lib/endorsement.js",
 		"./node_modules/screenfull/dist/screenfull.js"
 	],
 	"modules": {
@@ -32,7 +36,8 @@
 		"composer/uploads.js": "./static/lib/composer/uploads.js",
 		"composer/autocomplete.js": "./static/lib/composer/autocomplete.js",
 		"composer/post-queue.js": "./static/lib/composer/post-queue.js",
-		"../admin/plugins/composer-default.js": "./static/lib/admin.js"
+		"../admin/plugins/composer-default.js": "./static/lib/admin.js",
+		"endorsement.js": "./static/lib/endorsement.js"
 	},
 	"templates": "static/templates"
 }
