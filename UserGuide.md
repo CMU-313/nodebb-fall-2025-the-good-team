@@ -155,23 +155,25 @@ The automated testing can be found visibility test at lines ...
 The test does ...
 
 File path:
-> test/custom_tests/visibility_tests
+> test/custom_tests/visibility_tests.js
 
 
 ## Post visibility toggle
 
 ### How to use?
 
+This feature creates a button that is only visible to instructors on the bottom of a post. This button either says “Make Private” or “Make Public” depending on the post's current visibility settings. Pressing this button will change the visibility of the post and trigger an alert to remind the instructor of the change. 
 
 ### How to test?
 
+Log in as an instructor and click on a student post and then click the button. An alert should appear in the bottom right hand corner of the screen confirming the change. To further test this though, you can log out and check if the post is still visible. If it was previously public, clicking the button should mean the post is no longer visible. 
 
 
 ### Automated testing
 
-The automated testing can be found visibility test at lines ... 
+The automated testing can be found in the visibility_toggle.js test file.
 
-The test does ...
+This test suite verifies the behavior of the post visibility toggle button and consists of four tests. The first test ensures that clicking the button emits the correct socket event with the post ID. The second and third tests verify that the button text updates according to the resulting visibility and that the appropriate success alert messages are triggered. The fourth test checks that an error does not cause a crash.
 
 File path:
-> test/custom_tests/visibility_tests
+> test/custom_tests/visibility_toggle.js
