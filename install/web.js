@@ -339,9 +339,9 @@ async function copyCSS() {
 async function loadDefaults() {
 	const setupDefaultsPath = path.join(__dirname, '../setup.json');
 	try {
-		// eslint-disable-next-line no-bitwise
 		await fs.promises.access(
 			setupDefaultsPath,
+			// eslint-disable-next-line no-bitwise
 			fs.constants.F_OK | fs.constants.R_OK,
 		);
 	} catch (err) {

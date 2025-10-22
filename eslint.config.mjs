@@ -4,6 +4,9 @@ import serverConfig from 'eslint-config-nodebb';
 import publicConfig from 'eslint-config-nodebb/public';
 import commonRules from 'eslint-config-nodebb/common';
 
+import pluginPrettier from 'eslint-plugin-prettier';
+import configPrettier from 'eslint-config-prettier';
+
 import { defineConfig } from 'eslint/config';
 import stylisticJs from '@stylistic/eslint-plugin-js';
 import js from '@eslint/js';
@@ -59,6 +62,17 @@ export default defineConfig([
       'no-prototype-builtins': 'off',
     },
   },
+  {
+    files: ['**/*.js', '**/*.mjs'],
+    plugins: {
+      prettier: pluginPrettier,
+    },
+    rules: {
+      'prettier/prettier': 'error',
+    },
+  },
   ...publicConfig,
   ...serverConfig,
+
+  configPrettier,
 ]);
