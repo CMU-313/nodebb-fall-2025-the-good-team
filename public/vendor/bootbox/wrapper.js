@@ -9,7 +9,9 @@ require(['translator', 'bootbox'], function (shim, bootbox) {
 			configurable: true,
 			enumerable: true,
 			get: function () {
-				console.warn('[deprecated] Accessing bootbox globally is deprecated. Use `require(["bootbox"], function (bootbox) { ... })` instead');
+				console.warn(
+					'[deprecated] Accessing bootbox globally is deprecated. Use `require(["bootbox"], function (bootbox) { ... })` instead',
+				);
 				return bootbox;
 			},
 		});
@@ -59,4 +61,3 @@ require(['translator', 'bootbox'], function (shim, bootbox) {
 		bootbox.setLocale(lang);
 	});
 });
-

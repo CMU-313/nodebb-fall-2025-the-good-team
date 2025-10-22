@@ -14,13 +14,22 @@ $(document).ready(function () {
 	function setupSkinSwitcher() {
 		$('[component="skinSwitcher"]').on('click', '.dropdown-item', function () {
 			const skin = $(this).attr('data-value');
-			$('[component="skinSwitcher"] .dropdown-item .fa-check').addClass('invisible');
+			$('[component="skinSwitcher"] .dropdown-item .fa-check').addClass(
+				'invisible',
+			);
 			$(this).find('.fa-check').removeClass('invisible');
-			require(['forum/account/settings', 'hooks'], function (accountSettings, hooks) {
+			require(['forum/account/settings', 'hooks'], function (
+				accountSettings,
+				hooks,
+			) {
 				hooks.one('action:skin.change', function () {
-					$('[component="skinSwitcher"] [component="skinSwitcher/icon"]').removeClass('fa-fade');
+					$(
+						'[component="skinSwitcher"] [component="skinSwitcher/icon"]',
+					).removeClass('fa-fade');
 				});
-				$('[component="skinSwitcher"] [component="skinSwitcher/icon"]').addClass('fa-fade');
+				$(
+					'[component="skinSwitcher"] [component="skinSwitcher/icon"]',
+				).addClass('fa-fade');
 				accountSettings.changeSkin(skin);
 			});
 		});
@@ -33,7 +42,9 @@ $(document).ready(function () {
 				width: $('#panel').width(),
 			};
 			const sidebarEl = $('.sidebar-left');
-			css[isRtl ? 'right' : 'left'] = sidebarEl.is(':visible') ? sidebarEl.outerWidth(true) : 0;
+			css[isRtl ? 'right' : 'left'] = sidebarEl.is(':visible')
+				? sidebarEl.outerWidth(true)
+				: 0;
 			$('[component="composer"]').css(css);
 		});
 
@@ -58,7 +69,9 @@ $(document).ready(function () {
 				}
 				$(window).trigger('action:sidebar.toggle');
 				if (ajaxify.data.template.topic) {
-					hooks.fire('action:navigator.update', { newIndex: navigator.getIndex() });
+					hooks.fire('action:navigator.update', {
+						newIndex: navigator.getIndex(),
+					});
 				}
 			});
 
@@ -67,11 +80,20 @@ $(document).ready(function () {
 			const location = config.theme.topMobilebar ? 'top' : 'bottom';
 			const $body = $('body');
 			const $window = $(window);
-			$body.on('shown.bs.dropdown hidden.bs.dropdown', '.sticky-tools', function () {
-				bottomBar.toggleClass('hidden', $(this).find('.dropdown-menu.show').length);
-			});
+			$body.on(
+				'shown.bs.dropdown hidden.bs.dropdown',
+				'.sticky-tools',
+				function () {
+					bottomBar.toggleClass(
+						'hidden',
+						$(this).find('.dropdown-menu.show').length,
+					);
+				},
+			);
 			function isSearchVisible() {
-				return !!$('[component="bottombar"] [component="sidebar/search"] .search-dropdown.show').length;
+				return !!$(
+					'[component="bottombar"] [component="sidebar/search"] .search-dropdown.show',
+				).length;
 			}
 
 			let lastScrollTop = $window.scrollTop();
@@ -84,18 +106,26 @@ $(document).ready(function () {
 					lastScrollTop = st;
 					return;
 				}
-				if (st !== lastScrollTop && !navigator.scrollActive && !isSearchVisible()) {
+				if (
+					st !== lastScrollTop &&
+					!navigator.scrollActive &&
+					!isSearchVisible()
+				) {
 					const diff = Math.abs(st - lastScrollTop);
 					const scrolledDown = st > lastScrollTop;
 					const scrolledUp = st < lastScrollTop;
 					const isHiding = !scrolledUp && scrolledDown;
 					if (diff > 10) {
 						bottomBar.css({
-							[location]: isHiding ?
-								-bottomBar.find('.bottombar-nav').outerHeight(true) :
-								0,
+							[location]: isHiding
+								? -bottomBar.find('.bottombar-nav').outerHeight(true)
+								: 0,
 						});
-						if (stickyTools && config.theme.topMobilebar && config.theme.autohideBottombar) {
+						if (
+							stickyTools &&
+							config.theme.topMobilebar &&
+							config.theme.autohideBottombar
+						) {
 							stickyTools.css({
 								top: isHiding ? 0 : 'var(--panel-offset)',
 							});
@@ -124,7 +154,8 @@ $(document).ready(function () {
 			hooks.on('action:ajaxify.end', function () {
 				bottomBar.removeClass('hidden');
 				const { template } = ajaxify.data;
-				stickyTools = (template.category || template.topic) ? $('.sticky-tools') : null;
+				stickyTools =
+					template.category || template.topic ? $('.sticky-tools') : null;
 				$window.off('scroll', delayedScroll);
 				if (config.theme.autohideBottombar) {
 					bottomBar.css({ [location]: 0 });
@@ -136,7 +167,9 @@ $(document).ready(function () {
 
 	function setupSearch() {
 		$('[component="sidebar/search"]').on('shown.bs.dropdown', function () {
-			$(this).find('[component="search/fields"] input[name="query"]').trigger('focus');
+			$(this)
+				.find('[component="search/fields"] input[name="query"]')
+				.trigger('focus');
 		});
 	}
 
@@ -149,7 +182,9 @@ $(document).ready(function () {
 				if (count > 0) {
 					draftsEl.removeClass('hidden');
 				}
-				$('[component="drafts/count"]').toggleClass('hidden', count <= 0).text(count);
+				$('[component="drafts/count"]')
+					.toggleClass('hidden', count <= 0)
+					.text(count);
 			}
 
 			async function renderDraftList() {
@@ -166,18 +201,25 @@ $(document).ready(function () {
 						if (draft.title) {
 							draft.title = utils.escapeHTML(String(draft.title));
 						}
-						draft.text = utils.escapeHTML(
-							draft.text
-						).replace(/(?:\r\n|\r|\n)/g, '<br>');
+						draft.text = utils
+							.escapeHTML(draft.text)
+							.replace(/(?:\r\n|\r|\n)/g, '<br>');
 					}
 				});
 
-				const html = await app.parseAndTranslate('partials/sidebar/drafts', 'drafts', { drafts: draftItems });
+				const html = await app.parseAndTranslate(
+					'partials/sidebar/drafts',
+					'drafts',
+					{ drafts: draftItems },
+				);
 				draftListEl.find('.no-drafts').addClass('hidden');
 				draftListEl.find('.placeholder-wave').addClass('hidden');
-				draftListEl.find('.draft-item-container').html(html).find('.timeago').timeago();
+				draftListEl
+					.find('.draft-item-container')
+					.html(html)
+					.find('.timeago')
+					.timeago();
 			}
-
 
 			draftsEl.on('shown.bs.dropdown', renderDraftList);
 
@@ -187,12 +229,15 @@ $(document).ready(function () {
 
 			draftsEl.on('click', '[component="drafts/delete"]', function () {
 				const save_id = $(this).attr('data-save-id');
-				bootbox.confirm('[[modules:composer.discard-draft-confirm]]', function (ok) {
-					if (ok) {
-						drafts.removeDraft(save_id);
-						renderDraftList();
-					}
-				});
+				bootbox.confirm(
+					'[[modules:composer.discard-draft-confirm]]',
+					function (ok) {
+						if (ok) {
+							drafts.removeDraft(save_id);
+							renderDraftList();
+						}
+					},
+				);
 				return false;
 			});
 
@@ -250,7 +295,9 @@ $(document).ready(function () {
 
 		tooltipEls.on('mouseenter', function (ev) {
 			const target = $(ev.target);
-			const isDropdown = target.hasClass('dropdown-menu') || !!target.parents('.dropdown-menu').length;
+			const isDropdown =
+				target.hasClass('dropdown-menu') ||
+				!!target.parents('.dropdown-menu').length;
 			if (!$('.sidebar').hasClass('open') && !isDropdown) {
 				$(this).tooltip('show');
 			}
@@ -289,10 +336,11 @@ $(document).ready(function () {
 		function toggleOverflow() {
 			mainNavEl.toggleClass(
 				'overflow-y-auto',
-				!mainNavEl.find('.dropdown-menu.show').length
+				!mainNavEl.find('.dropdown-menu.show').length,
 			);
 		}
-		mainNavEl.on('shown.bs.dropdown', toggleOverflow)
+		mainNavEl
+			.on('shown.bs.dropdown', toggleOverflow)
 			.on('hidden.bs.dropdown', toggleOverflow);
 	}
 });

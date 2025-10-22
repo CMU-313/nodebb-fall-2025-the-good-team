@@ -7,7 +7,7 @@ require(['hooks', 'api'], function (hooks, api) {
 		if (!$sel.length || $sel.data('inited')) return;
 		$sel.data('inited', 1);
 
-		// Label cleanup 
+		// Label cleanup
 		const labels = {
 			everyone: 'Everyone',
 			all_instructors: 'All Instructors',
@@ -21,8 +21,10 @@ require(['hooks', 'api'], function (hooks, api) {
 			const { users = [] } = await api.get('/groups/instructors/members');
 			if (users.length) {
 				const $group = $('<optgroup label="Instructors"></optgroup>');
-				users.forEach(u => {
-					$group.append($('<option>', { value: `user:${u.uid}`, text: u.username }));
+				users.forEach((u) => {
+					$group.append(
+						$('<option>', { value: `user:${u.uid}`, text: u.username }),
+					);
 				});
 				$sel.append($group);
 			}

@@ -17,7 +17,7 @@ const utils = require.main.require('./src/utils');
 const helpers = require.main.require('./src/controllers/helpers');
 const SocketPlugins = require.main.require('./src/socket.io/plugins');
 const socketMethods = require('./websockets');
-// Added db 
+// Added db
 const db = require.main.require('./src/database');
 
 const plugin = module.exports;
@@ -35,7 +35,7 @@ plugin.init = async function (data) {
 			if (!req.uid) {
 				return res.status(401).json({ error: 'Not authenticated' });
 			}
-            
+
 			const result = await plugin.toggleEndorsement(req.params.pid, req.uid);
 			res.json(result);
 		} catch (err) {
@@ -45,9 +45,11 @@ plugin.init = async function (data) {
 	});
 	// Add endorsement API route
 
-
-
-	routeHelpers.setupAdminPageRoute(router, '/admin/plugins/composer-default', controllers.renderAdminPage);
+	routeHelpers.setupAdminPageRoute(
+		router,
+		'/admin/plugins/composer-default',
+		controllers.renderAdminPage,
+	);
 };
 
 plugin.appendConfig = async function (config) {
@@ -66,42 +68,52 @@ plugin.addAdminNavigation = async function (header) {
 
 plugin.addPrefetchTags = async function (hookData) {
 	const prefetch = [
-		'/assets/src/modules/composer.js', '/assets/src/modules/composer/uploads.js', '/assets/src/modules/composer/drafts.js',
-		'/assets/src/modules/composer/tags.js', '/assets/src/modules/composer/categoryList.js', '/assets/src/modules/composer/resize.js',
-		'/assets/src/modules/composer/autocomplete.js', '/assets/templates/composer.tpl',
+		'/assets/src/modules/composer.js',
+		'/assets/src/modules/composer/uploads.js',
+		'/assets/src/modules/composer/drafts.js',
+		'/assets/src/modules/composer/tags.js',
+		'/assets/src/modules/composer/categoryList.js',
+		'/assets/src/modules/composer/resize.js',
+		'/assets/src/modules/composer/autocomplete.js',
+		'/assets/templates/composer.tpl',
 		`/assets/language/${meta.config.defaultLang || 'en-GB'}/topic.json`,
 		`/assets/language/${meta.config.defaultLang || 'en-GB'}/modules.json`,
 		`/assets/language/${meta.config.defaultLang || 'en-GB'}/tags.json`,
 	];
 
-	hookData.links = hookData.links.concat(prefetch.map(path => ({
-		rel: 'prefetch',
-		href: `${nconf.get('relative_path') + path}?${meta.config['cache-buster']}`,
-	})));
+	hookData.links = hookData.links.concat(
+		prefetch.map((path) => ({
+			rel: 'prefetch',
+			href: `${nconf.get('relative_path') + path}?${meta.config['cache-buster']}`,
+		})),
+	);
 
 	return hookData;
 };
 // Add endorsement data to posts
 plugin.addEndorsementData = async function (hookData) {
 	const { posts: postsData, uid } = hookData;
-    
+
 	if (!postsData) {
-		return hookData;}
-    
+		return hookData;
+	}
+
 	const isInstructor = await plugin.isUserInstructor(uid);
-    
+
 	if (Array.isArray(postsData)) {
-		await Promise.all(postsData.map(async (post) => {
-			if (post && post.pid) {
-				post.isEndorsed = await plugin.isPostEndorsed(post.pid);
-				post.viewerIsInstructor = isInstructor;
-			}
-		}));
+		await Promise.all(
+			postsData.map(async (post) => {
+				if (post && post.pid) {
+					post.isEndorsed = await plugin.isPostEndorsed(post.pid);
+					post.viewerIsInstructor = isInstructor;
+				}
+			}),
+		);
 	} else if (postsData && postsData.pid) {
 		postsData.isEndorsed = await plugin.isPostEndorsed(postsData.pid);
 		postsData.viewerIsInstructor = isInstructor;
 	}
-    
+
 	return hookData;
 };
 
@@ -110,7 +122,7 @@ plugin.isUserInstructor = async function (uid) {
 	if (!uid || parseInt(uid, 10) <= 0) {
 		return false;
 	}
-    
+
 	try {
 		const [isAdmin, isGlobalMod] = await Promise.all([
 			user.isAdministrator(uid),
@@ -128,7 +140,7 @@ plugin.isPostEndorsed = async function (pid) {
 	if (!pid) {
 		return false;
 	}
-    
+
 	try {
 		const endorsed = await db.getObjectField(`post:${pid}`, 'endorsed');
 		return endorsed === '1';
@@ -138,23 +150,26 @@ plugin.isPostEndorsed = async function (pid) {
 	}
 };
 
-
 // Toggle post endorsement
 plugin.toggleEndorsement = async function (pid, uid) {
 	if (!pid || !uid) {
 		throw new Error('Invalid post ID or user ID');
 	}
-    
+
 	const isInstructor = await plugin.isUserInstructor(uid);
 	if (!isInstructor) {
 		throw new Error('Only instructors can endorse posts');
 	}
-    
+
 	const currentlyEndorsed = await plugin.isPostEndorsed(pid);
 	const newEndorsedState = !currentlyEndorsed;
-    
-	await db.setObjectField(`post:${pid}`, 'endorsed', newEndorsedState ? '1' : '0');
-    
+
+	await db.setObjectField(
+		`post:${pid}`,
+		'endorsed',
+		newEndorsedState ? '1' : '0',
+	);
+
 	// Emit real-time update
 	const socketio = require.main.require('./src/socket.io');
 	const postData = await posts.getPostData(pid);
@@ -164,14 +179,12 @@ plugin.toggleEndorsement = async function (pid, uid) {
 			endorsed: newEndorsedState,
 		});
 	}
-    
+
 	return {
 		pid: parseInt(pid, 10),
 		endorsed: newEndorsedState,
 	};
 };
-
-
 
 plugin.getFormattingOptions = async function () {
 	const defaultVisibility = {
@@ -220,7 +233,7 @@ plugin.getFormattingOptions = async function () {
 	payload.options.forEach((option) => {
 		option.visibility = {
 			...defaultVisibility,
-			...option.visibility || {},
+			...(option.visibility || {}),
 		};
 	});
 
@@ -261,7 +274,14 @@ plugin.filterComposerBuild = async function (hookData) {
 		getPostData(req),
 		getTopicData(req),
 		categories.getCategoryFields(req.query.cid, [
-			'name', 'icon', 'color', 'bgColor', 'backgroundImage', 'imageClass', 'minTags', 'maxTags',
+			'name',
+			'icon',
+			'color',
+			'bgColor',
+			'backgroundImage',
+			'imageClass',
+			'minTags',
+			'maxTags',
 		]),
 		user.isAdministrator(req.uid),
 		isModerator(req),
@@ -289,7 +309,10 @@ plugin.filterComposerBuild = async function (hookData) {
 	}
 	globalPrivileges['topics:tag'] = canTagTopics;
 	const cid = parseInt(req.query.cid, 10);
-	const topicTitle = topicData && topicData.title ? topicData.title.replace(/%/g, '&#37;').replace(/,/g, '&#44;') : validator.escape(String(req.query.title || ''));
+	const topicTitle =
+		topicData && topicData.title
+			? topicData.title.replace(/%/g, '&#37;').replace(/,/g, '&#44;')
+			: validator.escape(String(req.query.title || ''));
 	return {
 		req: req,
 		res: res,
@@ -303,7 +326,8 @@ plugin.filterComposerBuild = async function (hookData) {
 			discardRoute: discardRoute,
 
 			resizable: false,
-			allowTopicsThumbnail: parseInt(meta.config.allowTopicsThumbnail, 10) === 1 && isMain,
+			allowTopicsThumbnail:
+				parseInt(meta.config.allowTopicsThumbnail, 10) === 1 && isMain,
 
 			// can't use title property as that is used for page title
 			topicTitle: topicTitle,
@@ -326,7 +350,8 @@ plugin.filterComposerBuild = async function (hookData) {
 			isTopic: !!req.query.cid,
 			isEditing: isEditing,
 			canSchedule: canScheduleTopics,
-			showHandleInput: meta.config.allowGuestHandles === 1 &&
+			showHandleInput:
+				meta.config.allowGuestHandles === 1 &&
 				(req.uid === 0 || (isEditing && isGuestPost && (isAdmin || isMod))),
 			handle: postData ? postData.handle || '' : undefined,
 			formatting: formatting,
@@ -339,11 +364,17 @@ plugin.filterComposerBuild = async function (hookData) {
 };
 
 async function checkPrivileges(req, res) {
-	const notAllowed = (
-		(req.query.cid && !await privileges.categories.can('topics:create', req.query.cid, req.uid)) ||
-		(req.query.tid && !await privileges.topics.can('topics:reply', req.query.tid, req.uid)) ||
-		(req.query.pid && !await privileges.posts.can('posts:edit', req.query.pid, req.uid))
-	);
+	const notAllowed =
+		(req.query.cid &&
+			!(await privileges.categories.can(
+				'topics:create',
+				req.query.cid,
+				req.uid,
+			))) ||
+		(req.query.tid &&
+			!(await privileges.topics.can('topics:reply', req.query.tid, req.uid))) ||
+		(req.query.pid &&
+			!(await privileges.posts.can('posts:edit', req.query.pid, req.uid)));
 
 	if (notAllowed) {
 		await helpers.notAllowed(req, res);
@@ -353,7 +384,7 @@ async function checkPrivileges(req, res) {
 function generateDiscardRoute(req, topicData) {
 	if (req.query.cid) {
 		return `${nconf.get('relative_path')}/category/${validator.escape(String(req.query.cid))}`;
-	} else if ((req.query.tid || req.query.pid)) {
+	} else if (req.query.tid || req.query.pid) {
 		if (topicData) {
 			return `${nconf.get('relative_path')}/topic/${topicData.slug}`;
 		}
@@ -366,8 +397,11 @@ async function generateBody(req, postData) {
 	// Quoted reply
 	if (req.query.toPid && parseInt(req.query.quoted, 10) === 1 && postData) {
 		const username = await user.getUserField(postData.uid, 'username');
-		const translated = await translator.translate(`[[modules:composer.user-said, ${username}]]`);
-		body = `${translated}\n` +
+		const translated = await translator.translate(
+			`[[modules:composer.user-said, ${username}]]`,
+		);
+		body =
+			`${translated}\n` +
 			`> ${postData ? `${postData.content.replace(/\n/g, '\n> ')}\n\n` : ''}`;
 	} else if (req.query.body || req.query.content) {
 		body = validator.escape(String(req.query.body || req.query.content));
@@ -403,14 +437,22 @@ async function isModerator(req) {
 
 async function canTag(req) {
 	if (parseInt(req.query.cid, 10)) {
-		return await privileges.categories.can('topics:tag', req.query.cid, req.uid);
+		return await privileges.categories.can(
+			'topics:tag',
+			req.query.cid,
+			req.uid,
+		);
 	}
 	return true;
 }
 
 async function canSchedule(req) {
 	if (parseInt(req.query.cid, 10)) {
-		return await privileges.categories.can('topics:schedule', req.query.cid, req.uid);
+		return await privileges.categories.can(
+			'topics:schedule',
+			req.query.cid,
+			req.uid,
+		);
 	}
 	return false;
 }
@@ -437,127 +479,136 @@ async function cidFromQuery(query) {
 
 // Register socket handlers for endorsement feature
 SocketPlugins.endorsement = {};
-    
+
 SocketPlugins.endorsement.checkTopic = async function (socket, data) {
-    if (!data || !data.tid) {
-        throw new Error('[[error:invalid-data]]');
-    }
-        
-    try {
-        // Get post IDs for the topic
-        const pids = await db.getSortedSetRange('tid:' + data.tid + ':posts', 0, -1);
-            
-        if (!pids || pids.length === 0) {
-            return {
-                tid: data.tid,
-                hasEndorsement: false
-            };
-        }
-            
-        // Get posts data
-        const postsData = await posts.getPostsData(pids);
-        const hasEndorsement = postsData && postsData.some(post => post && post.upvotes > 0);
-            
-        return {
-            tid: data.tid,
-            hasEndorsement: hasEndorsement
-        };
-    } catch (err) {
-        console.error('Error checking topic endorsement:', err);
-        return {
-            tid: data.tid,
-            hasEndorsement: false
-        };
-    }
+	if (!data || !data.tid) {
+		throw new Error('[[error:invalid-data]]');
+	}
+
+	try {
+		// Get post IDs for the topic
+		const pids = await db.getSortedSetRange(
+			'tid:' + data.tid + ':posts',
+			0,
+			-1,
+		);
+
+		if (!pids || pids.length === 0) {
+			return {
+				tid: data.tid,
+				hasEndorsement: false,
+			};
+		}
+
+		// Get posts data
+		const postsData = await posts.getPostsData(pids);
+		const hasEndorsement =
+			postsData && postsData.some((post) => post && post.upvotes > 0);
+
+		return {
+			tid: data.tid,
+			hasEndorsement: hasEndorsement,
+		};
+	} catch (err) {
+		console.error('Error checking topic endorsement:', err);
+		return {
+			tid: data.tid,
+			hasEndorsement: false,
+		};
+	}
 };
 
 plugin.addEndorsementTags = async function (hookData) {
-    const { posts } = hookData;
-    
-    if (!posts || !Array.isArray(posts)) {
-        return hookData;
-    }
+	const { posts } = hookData;
 
-    // Add endorsement flag to posts with upvotes > 0
-    posts.forEach(post => {
-        if (post && typeof post.upvotes === 'number' && post.upvotes > 0) {
-            post.hasEndorsement = true;
-            post.endorsementLevel = getEndorsementLevel(post.upvotes);
-        } else {
-            post.hasEndorsement = false;
-        }
-    });
+	if (!posts || !Array.isArray(posts)) {
+		return hookData;
+	}
 
-    return hookData;
+	// Add endorsement flag to posts with upvotes > 0
+	posts.forEach((post) => {
+		if (post && typeof post.upvotes === 'number' && post.upvotes > 0) {
+			post.hasEndorsement = true;
+			post.endorsementLevel = getEndorsementLevel(post.upvotes);
+		} else {
+			post.hasEndorsement = false;
+		}
+	});
+
+	return hookData;
 };
 
 function getEndorsementLevel(upvotes) {
-    if (upvotes >= 10) {
-        return 'high';
-    } else if (upvotes >= 5) {
-        return 'medium';
-    } else if (upvotes > 0) {
-        return 'low';
-    }
-    return 'none';
+	if (upvotes >= 10) {
+		return 'high';
+	} else if (upvotes >= 5) {
+		return 'medium';
+	} else if (upvotes > 0) {
+		return 'low';
+	}
+	return 'none';
 }
 
 // Add other existing plugin methods here...
 
 plugin.onPostUpvote = async function (hookData) {
-    const { post, uid } = hookData;
-    
-    if (!post || !post.pid) {
-        return;
-    }
-    
-    try {
-        // Get updated post data with vote counts
-        const postData = await posts.getPostData(post.pid);
-        
-        // Emit real-time update for endorsement status
-        const socketio = require.main.require('./src/socket.io');
-        if (postData && postData.tid) {
-            const hasEndorsement = postData.upvotes > 0;
-            const endorsementLevel = hasEndorsement ? getEndorsementLevel(postData.upvotes) : 'none';
-            
-            socketio.in(`topic_${postData.tid}`).emit('event:endorsement_updated', {
-                pid: parseInt(post.pid, 10),
-                hasEndorsement: hasEndorsement,
-                endorsementLevel: endorsementLevel,
-                upvotes: postData.upvotes
-            });
-        }
-    } catch (err) {
-        console.error('Error handling post upvote for endorsement:', err);
-    }
+	const { post, uid } = hookData;
+
+	if (!post || !post.pid) {
+		return;
+	}
+
+	try {
+		// Get updated post data with vote counts
+		const postData = await posts.getPostData(post.pid);
+
+		// Emit real-time update for endorsement status
+		const socketio = require.main.require('./src/socket.io');
+		if (postData && postData.tid) {
+			const hasEndorsement = postData.upvotes > 0;
+			const endorsementLevel = hasEndorsement
+				? getEndorsementLevel(postData.upvotes)
+				: 'none';
+
+			socketio.in(`topic_${postData.tid}`).emit('event:endorsement_updated', {
+				pid: parseInt(post.pid, 10),
+				hasEndorsement: hasEndorsement,
+				endorsementLevel: endorsementLevel,
+				upvotes: postData.upvotes,
+			});
+		}
+	} catch (err) {
+		console.error('Error handling post upvote for endorsement:', err);
+	}
 };
 
 plugin.onPostUnvote = async function (hookData) {
-    const { post, uid } = hookData;
-    
-    if (!post || !post.pid) {
-        return;
-    }
-    
-    try {
-        // Get updated post data with vote counts
-        const postData = await posts.getPostData(post.pid);
-        
-        // Emit real-time update for endorsement status
-        const socketio = require.main.require('./src/socket.io');
-        if (postData && postData.tid) {
-            const hasEndorsement = postData.upvotes > 0;
-            const endorsementLevel = hasEndorsement ? getEndorsementLevel(postData.upvotes) : 'none';
-            
-            socketio.in(`topic_${postData.tid}`).emit('event:endorsement_updated', {
-                pid: parseInt(post.pid, 10),
-                hasEndorsement: hasEndorsement,
-                endorsementLevel: endorsementLevel,
-                upvotes: postData.upvotes
-            });
-        }
-    } catch (err) {
-        console.error('Error handling post unvote for endorsement:', err);
-    }
+	const { post, uid } = hookData;
+
+	if (!post || !post.pid) {
+		return;
+	}
+
+	try {
+		// Get updated post data with vote counts
+		const postData = await posts.getPostData(post.pid);
+
+		// Emit real-time update for endorsement status
+		const socketio = require.main.require('./src/socket.io');
+		if (postData && postData.tid) {
+			const hasEndorsement = postData.upvotes > 0;
+			const endorsementLevel = hasEndorsement
+				? getEndorsementLevel(postData.upvotes)
+				: 'none';
+
+			socketio.in(`topic_${postData.tid}`).emit('event:endorsement_updated', {
+				pid: parseInt(post.pid, 10),
+				hasEndorsement: hasEndorsement,
+				endorsementLevel: endorsementLevel,
+				upvotes: postData.upvotes,
+			});
+		}
+	} catch (err) {
+		console.error('Error handling post unvote for endorsement:', err);
+	}
 };

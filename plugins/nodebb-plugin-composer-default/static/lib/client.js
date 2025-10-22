@@ -20,9 +20,10 @@ $(document).ready(function () {
 			});
 		} else {
 			ajaxify.go(
-				'compose?cid=' + data.cid +
-				(data.title ? '&title=' + encodeURIComponent(data.title) : '') +
-				(data.body ? '&body=' + encodeURIComponent(data.body) : '')
+				'compose?cid=' +
+					data.cid +
+					(data.title ? '&title=' + encodeURIComponent(data.title) : '') +
+					(data.body ? '&body=' + encodeURIComponent(data.body) : ''),
 			);
 		}
 	});
@@ -52,10 +53,11 @@ $(document).ready(function () {
 			});
 		} else {
 			ajaxify.go(
-				'compose?tid=' + data.tid +
-				(data.pid ? '&toPid=' + data.pid : '') +
-				(data.title ? '&title=' + encodeURIComponent(data.title) : '') +
-				(data.body ? '&body=' + encodeURIComponent(data.body) : '')
+				'compose?tid=' +
+					data.tid +
+					(data.pid ? '&toPid=' + data.pid : '') +
+					(data.title ? '&title=' + encodeURIComponent(data.title) : '') +
+					(data.body ? '&body=' + encodeURIComponent(data.body) : ''),
 			);
 		}
 	});
@@ -77,7 +79,14 @@ $(document).ready(function () {
 				});
 			});
 		} else {
-			ajaxify.go('compose?tid=' + data.tid + '&toPid=' + data.pid + '&quoted=1&username=' + data.username);
+			ajaxify.go(
+				'compose?tid=' +
+					data.tid +
+					'&toPid=' +
+					data.pid +
+					'&quoted=1&username=' +
+					data.username,
+			);
 		}
 	});
 

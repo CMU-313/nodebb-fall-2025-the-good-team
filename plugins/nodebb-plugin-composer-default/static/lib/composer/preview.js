@@ -11,16 +11,20 @@ define('composer/preview', ['hooks'], function (hooks) {
 
 		var textarea = postContainer.find('textarea');
 
-		socket.emit('plugins.composer.renderPreview', textarea.val(), function (err, preview) {
-			if (err) {
-				return;
-			}
-			preview = $('<div>' + preview + '</div>');
-			preview.find('img:not(.not-responsive)').addClass('img-fluid');
-			postContainer.find('.preview').html(preview);
-			hooks.fire('action:composer.preview', { postContainer, preview });
-			callback();
-		});
+		socket.emit(
+			'plugins.composer.renderPreview',
+			textarea.val(),
+			function (err, preview) {
+				if (err) {
+					return;
+				}
+				preview = $('<div>' + preview + '</div>');
+				preview.find('img:not(.not-responsive)').addClass('img-fluid');
+				postContainer.find('.preview').html(preview);
+				hooks.fire('action:composer.preview', { postContainer, preview });
+				callback();
+			},
+		);
 	};
 
 	preview.matchScroll = function (postContainer) {
@@ -39,7 +43,9 @@ define('composer/preview', ['hooks'], function (hooks) {
 
 			var scrollPercent = textarea.scrollTop() / diff;
 
-			preview.scrollTop(Math.max(preview[0].scrollHeight - preview.height(), 0) * scrollPercent);
+			preview.scrollTop(
+				Math.max(preview[0].scrollHeight - preview.height(), 0) * scrollPercent,
+			);
 		}
 	};
 
@@ -47,14 +53,19 @@ define('composer/preview', ['hooks'], function (hooks) {
 		const postContainer = $postContainer.get(0);
 		preview.env = utils.findBootstrapEnvironment();
 		const isMobile = ['xs', 'sm'].includes(preview.env);
-		const toggler = postContainer.querySelector('.formatting-bar [data-action="preview"]');
+		const toggler = postContainer.querySelector(
+			'.formatting-bar [data-action="preview"]',
+		);
 		const showText = toggler.querySelector('.show-text');
 		const hideText = toggler.querySelector('.hide-text');
 		const previewToggled = localStorage.getItem('composer:previewToggled');
-		const hidePreviewOnOpen = config['composer-default'] && config['composer-default'].hidePreviewOnOpen === 'on';
-		let show = !isMobile && (
-			((previewToggled === null && !hidePreviewOnOpen) || previewToggled === 'true')
-		);
+		const hidePreviewOnOpen =
+			config['composer-default'] &&
+			config['composer-default'].hidePreviewOnOpen === 'on';
+		let show =
+			!isMobile &&
+			((previewToggled === null && !hidePreviewOnOpen) ||
+				previewToggled === 'true');
 		const previewContainer = postContainer.querySelector('.preview-container');
 		const writeContainer = postContainer.querySelector('.write-container');
 

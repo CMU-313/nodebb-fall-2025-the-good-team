@@ -25,19 +25,37 @@ async function render(context) {
 
 describe('Topic visibility badges (template)', function () {
 	it('renders Instructor-only badge when isInstructorOnly=true', async function () {
-		const html = await render({ isInstructorOnly: true, isPrivateToInstructor: false });
+		const html = await render({
+			isInstructorOnly: true,
+			isPrivateToInstructor: false,
+		});
 		assert.ok(html.includes('Instructor-only'), 'Instructor-only text missing');
-		assert.ok(!html.includes('Private to instructor'), 'Private badge should not render');
+		assert.ok(
+			!html.includes('Private to instructor'),
+			'Private badge should not render',
+		);
 	});
 
 	it('renders Private-to-instructor badge when isPrivateToInstructor=true', async function () {
-		const html = await render({ isInstructorOnly: false, isPrivateToInstructor: true });
-		assert.ok(!html.includes('Instructor-only'), 'Instructor badge should not render');
-		assert.ok(html.includes('Private to instructor'), 'Private-to-instructor text missing');
+		const html = await render({
+			isInstructorOnly: false,
+			isPrivateToInstructor: true,
+		});
+		assert.ok(
+			!html.includes('Instructor-only'),
+			'Instructor badge should not render',
+		);
+		assert.ok(
+			html.includes('Private to instructor'),
+			'Private-to-instructor text missing',
+		);
 	});
 
 	it('renders nothing when both flags are false (public)', async function () {
-		const html = await render({ isInstructorOnly: false, isPrivateToInstructor: false });
+		const html = await render({
+			isInstructorOnly: false,
+			isPrivateToInstructor: false,
+		});
 		// only whitespace is acceptable
 		assert.strictEqual(html, '', 'Expected no badge markup for public posts');
 	});

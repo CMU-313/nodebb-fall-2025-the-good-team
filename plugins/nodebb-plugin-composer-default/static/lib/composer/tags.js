@@ -1,4 +1,3 @@
-
 'use strict';
 
 define('composer/tags', ['alerts'], function (alerts) {
@@ -13,8 +12,12 @@ define('composer/tags', ['alerts'], function (alerts) {
 			return;
 		}
 
-		minTags = ajaxify.data.hasOwnProperty('minTags') ? ajaxify.data.minTags : config.minimumTagsPerTopic;
-		maxTags = ajaxify.data.hasOwnProperty('maxTags') ? ajaxify.data.maxTags : config.maximumTagsPerTopic;
+		minTags = ajaxify.data.hasOwnProperty('minTags')
+			? ajaxify.data.minTags
+			: config.minimumTagsPerTopic;
+		maxTags = ajaxify.data.hasOwnProperty('maxTags')
+			? ajaxify.data.maxTags
+			: config.maximumTagsPerTopic;
 
 		tagEl.tagsinput({
 			tagClass: 'badge bg-info rounded-1',
@@ -34,18 +37,22 @@ define('composer/tags', ['alerts'], function (alerts) {
 					$(this).autocomplete('widget').css('z-index', 20000);
 				},
 				source: function (request, response) {
-					socket.emit('topics.autocompleteTags', {
-						query: request.term,
-						cid: postData.cid,
-					}, function (err, tags) {
-						if (err) {
-							return alerts.error(err);
-						}
-						if (tags) {
-							response(tags);
-						}
-						$('.ui-autocomplete a').attr('data-ajaxify', 'false');
-					});
+					socket.emit(
+						'topics.autocompleteTags',
+						{
+							query: request.term,
+							cid: postData.cid,
+						},
+						function (err, tags) {
+							if (err) {
+								return alerts.error(err);
+							}
+							if (tags) {
+								response(tags);
+							}
+							$('.ui-autocomplete a').attr('data-ajaxify', 'false');
+						},
+					);
 				},
 				select: function (/* event, ui */) {
 					// when autocomplete is selected from the dropdown simulate a enter key down to turn it into a tag
@@ -56,22 +63,31 @@ define('composer/tags', ['alerts'], function (alerts) {
 			addTags(postData.tags, tagEl);
 
 			tagEl.on('beforeItemAdd', function (event) {
-				var reachedMaxTags = maxTags && maxTags <= tags.getTags(postContainer.attr('data-uuid')).length;
+				var reachedMaxTags =
+					maxTags &&
+					maxTags <= tags.getTags(postContainer.attr('data-uuid')).length;
 				var cleanTag = utils.cleanUpTag(event.item, config.maximumTagLength);
 				var different = cleanTag !== event.item;
-				event.cancel = different ||
+				event.cancel =
+					different ||
 					event.item.length < config.minimumTagLength ||
 					event.item.length > config.maximumTagLength ||
 					reachedMaxTags;
 
 				if (event.item.length < config.minimumTagLength) {
-					return alerts.error('[[error:tag-too-short, ' + config.minimumTagLength + ']]');
+					return alerts.error(
+						'[[error:tag-too-short, ' + config.minimumTagLength + ']]',
+					);
 				} else if (event.item.length > config.maximumTagLength) {
-					return alerts.error('[[error:tag-too-long, ' + config.maximumTagLength + ']]');
+					return alerts.error(
+						'[[error:tag-too-long, ' + config.maximumTagLength + ']]',
+					);
 				} else if (reachedMaxTags) {
 					return alerts.error('[[error:too-many-tags, ' + maxTags + ']]');
 				}
-				var cid = postData.hasOwnProperty('cid') ? postData.cid : ajaxify.data.cid;
+				var cid = postData.hasOwnProperty('cid')
+					? postData.cid
+					: ajaxify.data.cid;
 				$(window).trigger('action:tag.beforeAdd', {
 					cid,
 					tagEl,
@@ -92,39 +108,51 @@ define('composer/tags', ['alerts'], function (alerts) {
 					return;
 				}
 
-				socket.emit('topics.canRemoveTag', { tag: event.item }, function (err, allowed) {
-					if (err) {
-						return alerts.error(err);
-					}
-					if (!allowed) {
-						alerts.error('[[error:cant-remove-system-tag]]');
-						tagEl.tagsinput('add', event.item, { skipAddCheck: true });
-					}
-				});
+				socket.emit(
+					'topics.canRemoveTag',
+					{ tag: event.item },
+					function (err, allowed) {
+						if (err) {
+							return alerts.error(err);
+						}
+						if (!allowed) {
+							alerts.error('[[error:cant-remove-system-tag]]');
+							tagEl.tagsinput('add', event.item, { skipAddCheck: true });
+						}
+					},
+				);
 			});
 
 			tagEl.on('itemAdded', function (event) {
 				if (event.options && event.options.skipAddCheck) {
 					return;
 				}
-				var cid = postData.hasOwnProperty('cid') ? postData.cid : ajaxify.data.cid;
-				socket.emit('topics.isTagAllowed', { tag: event.item, cid: cid || 0 }, function (err, allowed) {
-					if (err) {
-						return alerts.error(err);
-					}
-					if (!allowed) {
-						return tagEl.tagsinput('remove', event.item, { skipRemoveCheck: true });
-					}
-					$(window).trigger('action:tag.added', {
-						cid,
-						tagEl,
-						tag: event.item,
-						inputAutocomplete: input,
-					});
-					if (input.length) {
-						input.autocomplete('close');
-					}
-				});
+				var cid = postData.hasOwnProperty('cid')
+					? postData.cid
+					: ajaxify.data.cid;
+				socket.emit(
+					'topics.isTagAllowed',
+					{ tag: event.item, cid: cid || 0 },
+					function (err, allowed) {
+						if (err) {
+							return alerts.error(err);
+						}
+						if (!allowed) {
+							return tagEl.tagsinput('remove', event.item, {
+								skipRemoveCheck: true,
+							});
+						}
+						$(window).trigger('action:tag.added', {
+							cid,
+							tagEl,
+							tag: event.item,
+							inputAutocomplete: input,
+						});
+						if (input.length) {
+							input.autocomplete('close');
+						}
+					},
+				);
 			});
 		});
 
@@ -150,18 +178,31 @@ define('composer/tags', ['alerts'], function (alerts) {
 		return minTags;
 	};
 
-	tags.onChangeCategory = function (postContainer, postData, cid, categoryData) {
+	tags.onChangeCategory = function (
+		postContainer,
+		postData,
+		cid,
+		categoryData,
+	) {
 		var tagDropdown = postContainer.find('[component="composer/tag/dropdown"]');
 		if (!tagDropdown.length) {
 			return;
 		}
 
 		toggleTagInput(postContainer, postData, categoryData);
-		tagDropdown.toggleClass('hidden', !categoryData.tagWhitelist || !categoryData.tagWhitelist.length);
+		tagDropdown.toggleClass(
+			'hidden',
+			!categoryData.tagWhitelist || !categoryData.tagWhitelist.length,
+		);
 		if (categoryData.tagWhitelist) {
-			app.parseAndTranslate('composer', 'tagWhitelist', { tagWhitelist: categoryData.tagWhitelist }, function (html) {
-				tagDropdown.find('.dropdown-menu').html(html);
-			});
+			app.parseAndTranslate(
+				'composer',
+				'tagWhitelist',
+				{ tagWhitelist: categoryData.tagWhitelist },
+				function (html) {
+					tagDropdown.find('.dropdown-menu').html(html);
+				},
+			);
 		}
 	};
 
@@ -183,21 +224,45 @@ define('composer/tags', ['alerts'], function (alerts) {
 			input.attr('readonly', '');
 			input.attr('placeholder', '');
 
-			tagEl.tagsinput('items').slice().forEach(function (tag) {
-				if (data.tagWhitelist.indexOf(tag) === -1) {
-					tagEl.tagsinput('remove', tag);
-				}
-			});
+			tagEl
+				.tagsinput('items')
+				.slice()
+				.forEach(function (tag) {
+					if (data.tagWhitelist.indexOf(tag) === -1) {
+						tagEl.tagsinput('remove', tag);
+					}
+				});
 		} else {
 			input.removeAttr('readonly');
-			input.attr('placeholder', postContainer.find('input.tags').attr('placeholder'));
+			input.attr(
+				'placeholder',
+				postContainer.find('input.tags').attr('placeholder'),
+			);
 		}
-		postContainer.find('.tags-container').toggleClass('haswhitelist', !!(data.tagWhitelist && data.tagWhitelist.length));
-		postContainer.find('.tags-container').toggleClass('hidden', (
-			data.privileges && data.privileges.hasOwnProperty('topics:tag') && !data.privileges['topics:tag']) ||
-			(maxTags === 0 && !postData && !postData.tags && !postData.tags.length));
+		postContainer
+			.find('.tags-container')
+			.toggleClass(
+				'haswhitelist',
+				!!(data.tagWhitelist && data.tagWhitelist.length),
+			);
+		postContainer
+			.find('.tags-container')
+			.toggleClass(
+				'hidden',
+				(data.privileges &&
+					data.privileges.hasOwnProperty('topics:tag') &&
+					!data.privileges['topics:tag']) ||
+					(maxTags === 0 &&
+						!postData &&
+						!postData.tags &&
+						!postData.tags.length),
+			);
 
-		if (data.privileges && data.privileges.hasOwnProperty('topics:tag') && !data.privileges['topics:tag']) {
+		if (
+			data.privileges &&
+			data.privileges.hasOwnProperty('topics:tag') &&
+			!data.privileges['topics:tag']
+		) {
 			tagEl.tagsinput('removeAll');
 		}
 
@@ -227,7 +292,9 @@ define('composer/tags', ['alerts'], function (alerts) {
 	}
 
 	tags.getTags = function (post_uuid) {
-		return $('.composer[data-uuid="' + post_uuid + '"] .tags').tagsinput('items');
+		return $('.composer[data-uuid="' + post_uuid + '"] .tags').tagsinput(
+			'items',
+		);
 	};
 
 	return tags;

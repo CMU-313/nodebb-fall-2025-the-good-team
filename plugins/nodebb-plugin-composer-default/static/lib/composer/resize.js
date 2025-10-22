@@ -1,4 +1,3 @@
-
 'use strict';
 
 define('composer/resize', ['taskbar'], function (taskbar) {
@@ -57,13 +56,17 @@ define('composer/resize', ['taskbar'], function (taskbar) {
 
 		// Adjust minimumRatio for shorter viewports
 		var minHeight = parseInt(style.getPropertyValue('min-height'), 10);
-		var adjustedMinimum = Math.max(minHeight / window.innerHeight, minimumRatio);
+		var adjustedMinimum = Math.max(
+			minHeight / window.innerHeight,
+			minimumRatio,
+		);
 
 		if (bounds.width >= smallMin) {
-			const boundedDifference = (bounds.height - bounds.boundedHeight) / bounds.height;
+			const boundedDifference =
+				(bounds.height - bounds.boundedHeight) / bounds.height;
 			ratio = Math.min(Math.max(ratio, adjustedMinimum + boundedDifference), 1);
 
-			var top = ratio * bounds.boundedHeight / bounds.height;
+			var top = (ratio * bounds.boundedHeight) / bounds.height;
 			elem.style.top = ((1 - top) * 100).toString() + '%';
 
 			// Add some extra space at the bottom of the body so that
@@ -81,7 +84,8 @@ define('composer/resize', ['taskbar'], function (taskbar) {
 	}
 
 	var resizeIt = doResize;
-	var raf = window.requestAnimationFrame ||
+	var raf =
+		window.requestAnimationFrame ||
 		window.webkitRequestAnimationFrame ||
 		window.mozRequestAnimationFrame;
 
@@ -139,7 +143,7 @@ define('composer/resize', ['taskbar'], function (taskbar) {
 		function resizeAction(e) {
 			var position = e.clientY - resizeOffset;
 			var bounds = getBounds();
-			var ratio = (bounds.height - position) / (bounds.boundedHeight);
+			var ratio = (bounds.height - position) / bounds.boundedHeight;
 
 			resizeIt(postContainer, ratio);
 		}
@@ -155,11 +159,14 @@ define('composer/resize', ['taskbar'], function (taskbar) {
 
 			var position = resizeEnd - resizeOffset;
 			var bounds = getBounds();
-			var ratio = (bounds.height - position) / (bounds.boundedHeight);
+			var ratio = (bounds.height - position) / bounds.boundedHeight;
 
-			if (resizeEnd - resizeBegin === 0 && postContainer.hasClass('maximized')) {
+			if (
+				resizeEnd - resizeBegin === 0 &&
+				postContainer.hasClass('maximized')
+			) {
 				postContainer.removeClass('maximized');
-				ratio = (!oldRatio || oldRatio >= 1 - snapMargin) ? 0.5 : oldRatio;
+				ratio = !oldRatio || oldRatio >= 1 - snapMargin ? 0.5 : oldRatio;
 				resizeIt(postContainer, ratio);
 			} else if (resizeEnd - resizeBegin === 0 || ratio >= 1 - snapMargin) {
 				resizeIt(postContainer, 1);

@@ -1,11 +1,23 @@
 'use strict';
 
 define('quickreply', [
-	'components', 'autocomplete', 'api',
-	'alerts', 'uploadHelpers', 'mousetrap', 'storage', 'hooks',
+	'components',
+	'autocomplete',
+	'api',
+	'alerts',
+	'uploadHelpers',
+	'mousetrap',
+	'storage',
+	'hooks',
 ], function (
-	components, autocomplete, api,
-	alerts, uploadHelpers, mousetrap, storage, hooks
+	components,
+	autocomplete,
+	api,
+	alerts,
+	uploadHelpers,
+	mousetrap,
+	storage,
+	hooks,
 ) {
 	const QuickReply = {
 		_autocomplete: null,
@@ -39,7 +51,9 @@ define('quickreply', [
 
 		uploadHelpers.init({
 			uploadBtnEl: $('[component="topic/quickreply/upload/button"]'),
-			dragDropAreaEl: $('[component="topic/quickreply/container"] .quickreply-message'),
+			dragDropAreaEl: $(
+				'[component="topic/quickreply/container"] .quickreply-message',
+			),
 			pasteEl: element,
 			uploadFormEl: $('[component="topic/quickreply/upload"]'),
 			inputEl: element,
@@ -47,7 +61,11 @@ define('quickreply', [
 			callback: function (uploads) {
 				let text = element.val();
 				uploads.forEach((upload) => {
-					text = text + (text ? '\n' : '') + (upload.isImage ? '!' : '') + `[${upload.filename}](${upload.url})`;
+					text =
+						text +
+						(text ? '\n' : '') +
+						(upload.isImage ? '!' : '') +
+						`[${upload.filename}](${upload.url})`;
 				});
 				element.val(text);
 			},
@@ -68,9 +86,13 @@ define('quickreply', [
 			};
 			const replyLen = replyMsg.length;
 			if (replyLen < parseInt(config.minimumPostLength, 10)) {
-				return alerts.error('[[error:content-too-short, ' + config.minimumPostLength + ']]');
+				return alerts.error(
+					'[[error:content-too-short, ' + config.minimumPostLength + ']]',
+				);
 			} else if (replyLen > parseInt(config.maximumPostLength, 10)) {
-				return alerts.error('[[error:content-too-long, ' + config.maximumPostLength + ']]');
+				return alerts.error(
+					'[[error:content-too-long, ' + config.maximumPostLength + ']]',
+				);
 			}
 
 			ready = false;
@@ -103,14 +125,17 @@ define('quickreply', [
 			element.val(draft);
 		}
 
-		element.on('keyup', utils.debounce(function () {
-			const text = element.val();
-			if (text) {
-				storage.setItem(qrDraftId, text);
-			} else {
-				storage.removeItem(qrDraftId);
-			}
-		}, 1000));
+		element.on(
+			'keyup',
+			utils.debounce(function () {
+				const text = element.val();
+				if (text) {
+					storage.setItem(qrDraftId, text);
+				} else {
+					storage.removeItem(qrDraftId);
+				}
+			}, 1000),
+		);
 
 		components.get('topic/quickreply/expand').on('click', (e) => {
 			e.preventDefault();
