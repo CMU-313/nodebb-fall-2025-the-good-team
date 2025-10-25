@@ -1,0 +1,17 @@
+configs:
+  - p/javascript        
+  - p/nodejsscan        
+  - .semgrep/rules.yml  
+
+deploy:
+  ignore_patterns:
+    - "dist/**"
+    - "build/**"
+    - "public/**"
+    - "**/*.min.js"
+    - "**/vendor/**"
+    - "**/third_party/**"
+
+options:
+  severity: warning     
+  timeout: 120

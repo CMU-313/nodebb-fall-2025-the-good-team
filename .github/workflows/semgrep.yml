@@ -1,0 +1,40 @@
+name: Semgrep (NodeBB)
+
+on:
+  pull_request:
+  push:
+    branches: [main]
+
+jobs:
+  semgrep:
+    runs-on: ubuntu-latest
+    permissions:
+      contents: read
+      security-events: write
+      actions: read
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+
+      - name: Semgrep scan (diff-aware; fail on High/Med)
+        uses: returntocorp/semgrep-action@v1
+        with:
+          config: .semgrep/semgrep.yaml
+          generateSarif: true
+          baselineRef: origin/main              
+          auditOn: push
+
+      - name: Save text/json reports
+        if: always()
+        run: |
+          mkdir -p artifacts
+          semgrep scan --config .semgrep/semgrep.yaml > artifacts/semgrep.txt || true
+          semgrep scan --config .semgrep/semgrep.yaml --json > artifacts/semgrep.json || true
+      - name: Upload artifacts
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: semgrep-output
+          path: artifacts/

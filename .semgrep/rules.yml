@@ -1,0 +1,103 @@
+rules:
+  # --- SECRETS IN CODE / LOGS ---
+  - id: nodebb-secret-hardcoded
+    message: "Possible hard-coded secret/token."
+    severity: ERROR
+    languages: [javascript, typescript]
+    patterns:
+      - pattern-either:
+          - pattern: |
+              const $S = "$VAL"
+          - pattern: |
+              let $S = "$VAL"
+    metavariable-pattern:
+      metavariable: $VAL
+      regex: "(?i)(sk_live|sk_test|token|apikey|api_key|secret|bearer)[0-9A-Za-z_\\-]{8,}"
+
+  - id: nodebb-secret-logged
+    message: "Do not log sensitive values (authorization/token/password)."
+    severity: ERROR
+    languages: [javascript, typescript]
+    pattern: console.log($X)
+    metavariable-pattern:
+      metavariable: $X
+      regex: "(?i)(authorization|auth|token|password|passwd|secret)"
+
+  # --- XSS / DOM SINKS ---
+  - id: nodebb-unsafe-innerhtml
+    message: "Avoid innerHTML. Use textContent or sanitize() first."
+    severity: ERROR
+    languages: [javascript, typescript]
+    patterns:
+      - pattern: $EL.innerHTML = $X
+      - pattern-not: $EL.innerHTML = sanitize($X)
+      - pattern-not: $EL.innerHTML = DOMPurify.sanitize($X)
+
+  # --- DANGEROUS APIS / INJECTION SINKS ---
+  - id: nodebb-avoid-eval
+    message: "Avoid eval/Function constructor; security and perf risk."
+    severity: ERROR
+    languages: [javascript, typescript]
+    pattern-either:
+      - pattern: eval($X)
+      - pattern: new Function($X, ...)
+
+  - id: nodebb-unsafe-exec
+    message: "Potential command injection: child_process.exec with variable input."
+    severity: ERROR
+    languages: [javascript, typescript]
+    patterns:
+      - pattern: child_process.exec($CMD, ...)
+      - pattern-not: child_process.exec("...", ...)
+    metadata: { cwe: "CWE-78" }
+
+  - id: nodebb-unsafe-fs-path
+    message: "User-controlled filesystem path used in fs operation; validate/whitelist."
+    severity: WARNING
+    languages: [javascript, typescript]
+    patterns:
+      - pattern-either:
+          - pattern: fs.readFile($P, ...)
+          - pattern: fs.readFileSync($P, ...)
+          - pattern: fs.writeFile($P, ...)
+          - pattern: fs.writeFileSync($P, ...)
+      - metavariable-pattern:
+          metavariable: $P
+          regex: "(req\\.(query|body|params)|process\\.env|user|input|path)"
+    metadata: { cwe: "CWE-22" }
+
+  # --- MISSING AWAIT ON KNOWN PROMISE APIS ---
+  - id: nodebb-missing-await-common-promises
+    message: "Likely missing await on Promise-returning call (fetch/axios/db)."
+    severity: WARNING
+    languages: [javascript, typescript]
+    patterns:
+      - pattern-either:
+          - pattern: fetch($ARGS)
+          - pattern: axios.$M($ARGS)
+          - pattern: $DB.$CALL($ARGS)
+      - pattern-not: await fetch($ARGS)
+      - pattern-not: await axios.$M($ARGS)
+      - pattern-not: await $DB.$CALL($ARGS)
+    metavariable-pattern:
+      metavariable: $M
+      regex: "(get|post|put|patch|delete|request)"
+    metavariable-pattern:
+      metavariable: $DB
+      regex: "(?i)(db|client|collection|model|prisma)"
+    # Tip: tune $DB regex for your actual DB client names
+
+  # --- EXPRESS ROUTES SHOULD HAVE VALIDATION (BASIC HEURISTIC) ---
+  - id: nodebb-route-requires-validation
+    message: "Express route without validate(...) middleware before handler."
+    severity: WARNING
+    languages: [javascript, typescript]
+    patterns:
+      # Simple form: app.get('/x', handler) – no validate middleware present
+      - pattern: app.$METHOD($PATH, $HANDLER)
+    metavariables:
+      METHOD:
+        regex: "get|post|put|patch|delete"
+    # This is a heuristic for single-handler routes.
+    # If you use arrays/multiple middlewares, consider expanding with pattern-inside for validate(...)
+    metadata: { policy: "require-validation-middleware" }
