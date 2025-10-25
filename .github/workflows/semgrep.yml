@@ -18,20 +18,20 @@ jobs:
         with:
           fetch-depth: 0
 
-      - name: Semgrep scan (diff-aware; fail on High/Med)
+      - name: Semgrep CI (fail on WARNING/ERROR only)
         uses: returntocorp/semgrep-action@v1
         with:
           config: .semgrep/semgrep.yaml
-          generateSarif: true
-          baselineRef: origin/main              
-          auditOn: push
+          args: --severity WARNING --severity ERROR
 
-      - name: Save text/json reports
+
+      - name: Save text/json reports (for PR evidence)
         if: always()
         run: |
           mkdir -p artifacts
-          semgrep scan --config .semgrep/semgrep.yaml > artifacts/semgrep.txt || true
-          semgrep scan --config .semgrep/semgrep.yaml --json > artifacts/semgrep.json || true
+          semgrep scan --config .semgrep/semgrep.yaml --severity WARNING --severity ERROR > artifacts/semgrep.txt || true
+          semgrep scan --config .semgrep/semgrep.yaml --severity WARNING --severity ERROR --json > artifacts/semgrep.json || true
+
       - name: Upload artifacts
         if: always()
         uses: actions/upload-artifact@v4

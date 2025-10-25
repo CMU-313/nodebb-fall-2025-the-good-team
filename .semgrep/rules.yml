@@ -6,10 +6,8 @@ rules:
     languages: [javascript, typescript]
     patterns:
       - pattern-either:
-          - pattern: |
-              const $S = "$VAL"
-          - pattern: |
-              let $S = "$VAL"
+          - pattern: const $S = "$VAL"
+          - pattern: let $S = "$VAL"
     metavariable-pattern:
       metavariable: $VAL
       regex: "(?i)(sk_live|sk_test|token|apikey|api_key|secret|bearer)[0-9A-Za-z_\\-]{8,}"
@@ -79,13 +77,12 @@ rules:
       - pattern-not: await fetch($ARGS)
       - pattern-not: await axios.$M($ARGS)
       - pattern-not: await $DB.$CALL($ARGS)
+    # Multiple metavariable regexes must be provided as a LIST (avoid duplicate keys)
     metavariable-pattern:
-      metavariable: $M
-      regex: "(get|post|put|patch|delete|request)"
-    metavariable-pattern:
-      metavariable: $DB
-      regex: "(?i)(db|client|collection|model|prisma)"
-    # Tip: tune $DB regex for your actual DB client names
+      - metavariable: $M
+        regex: "(get|post|put|patch|delete|request)"
+      - metavariable: $DB
+        regex: "(?i)(db|client|collection|model|prisma)"
 
   # --- EXPRESS ROUTES SHOULD HAVE VALIDATION (BASIC HEURISTIC) ---
   - id: nodebb-route-requires-validation
@@ -93,11 +90,8 @@ rules:
     severity: WARNING
     languages: [javascript, typescript]
     patterns:
-      # Simple form: app.get('/x', handler) – no validate middleware present
       - pattern: app.$METHOD($PATH, $HANDLER)
     metavariables:
       METHOD:
         regex: "get|post|put|patch|delete"
-    # This is a heuristic for single-handler routes.
-    # If you use arrays/multiple middlewares, consider expanding with pattern-inside for validate(...)
     metadata: { policy: "require-validation-middleware" }
