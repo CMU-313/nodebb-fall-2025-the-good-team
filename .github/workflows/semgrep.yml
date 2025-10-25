@@ -12,25 +12,30 @@ jobs:
       contents: read
       security-events: write
       actions: read
+
     steps:
       - name: Checkout
         uses: actions/checkout@v4
         with:
           fetch-depth: 0
 
-      - name: Semgrep CI (fail on WARNING/ERROR only)
+      - name: Semgrep CI (diff-aware; fail on WARNING/ERROR)
         uses: returntocorp/semgrep-action@v1
         with:
           config: .semgrep/semgrep.yaml
+          entryPoint: semgrep ci
           args: --severity WARNING --severity ERROR
-
 
       - name: Save text/json reports (for PR evidence)
         if: always()
         run: |
           mkdir -p artifacts
-          semgrep scan --config .semgrep/semgrep.yaml --severity WARNING --severity ERROR > artifacts/semgrep.txt || true
-          semgrep scan --config .semgrep/semgrep.yaml --severity WARNING --severity ERROR --json > artifacts/semgrep.json || true
+          docker run --rm -v "$PWD":/src semgrep/semgrep:latest \
+            semgrep scan --config .semgrep/semgrep.yaml \
+            --severity WARNING --severity ERROR > artifacts/semgrep.txt || true
+          docker run --rm -v "$PWD":/src semgrep/semgrep:latest \
+            semgrep scan --config .semgrep/semgrep.yaml \
+            --severity WARNING --severity ERROR --json > artifacts/semgrep.json || true
 
       - name: Upload artifacts
         if: always()
