@@ -59,9 +59,6 @@ rules:
           - pattern: fs.readFileSync($P, ...)
           - pattern: fs.writeFile($P, ...)
           - pattern: fs.writeFileSync($P, ...)
-      - metavariable-pattern:
-          metavariable: $P
-          regex: "(req\\.(query|body|params)|process\\.env|user|input|path)"
     metadata: { cwe: "CWE-22" }
 
   # --- MISSING AWAIT ON KNOWN PROMISE APIS ---
