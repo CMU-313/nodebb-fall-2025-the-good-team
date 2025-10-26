@@ -8,7 +8,7 @@ rules:
       - pattern-either:
           - pattern: const $S = "$VAL"
           - pattern: let $S = "$VAL"
-    metavariable-pattern:
+    metavariable-regex:
       metavariable: $VAL
       regex: "(?i)(sk_live|sk_test|token|apikey|api_key|secret|bearer)[0-9A-Za-z_\\-]{8,}"
 
@@ -17,7 +17,7 @@ rules:
     severity: ERROR
     languages: [javascript, typescript]
     pattern: console.log($X)
-    metavariable-pattern:
+    metavariable-regex:
       metavariable: $X
       regex: "(?i)(authorization|auth|token|password|passwd|secret)"
 
@@ -46,8 +46,6 @@ rules:
     languages: [javascript, typescript]
     patterns:
       - pattern: child_process.exec($CMD, ...)
-      - pattern-not: child_process.exec("...", ...)
-    metadata: { cwe: "CWE-78" }
 
   - id: nodebb-unsafe-fs-path
     message: "User-controlled filesystem path used in fs operation; validate/whitelist."
@@ -59,7 +57,9 @@ rules:
           - pattern: fs.readFileSync($P, ...)
           - pattern: fs.writeFile($P, ...)
           - pattern: fs.writeFileSync($P, ...)
-    metadata: { cwe: "CWE-22" }
+    metavariable-regex:
+      metavariable: $P
+      regex: "(req\\.(query|body|params)|process\\.env|user|input|path)"
 
   # --- MISSING AWAIT ON KNOWN PROMISE APIS ---
   - id: nodebb-missing-await-common-promises
@@ -74,8 +74,7 @@ rules:
       - pattern-not: await fetch($ARGS)
       - pattern-not: await axios.$M($ARGS)
       - pattern-not: await $DB.$CALL($ARGS)
-    # Multiple metavariable regexes must be provided as a LIST (avoid duplicate keys)
-    metavariable-pattern:
+    metavariable-regex:
       - metavariable: $M
         regex: "(get|post|put|patch|delete|request)"
       - metavariable: $DB
@@ -91,4 +90,3 @@ rules:
     metavariables:
       METHOD:
         regex: "get|post|put|patch|delete"
-    metadata: { policy: "require-validation-middleware" }
