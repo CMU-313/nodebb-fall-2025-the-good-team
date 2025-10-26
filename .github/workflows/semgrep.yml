@@ -16,15 +16,16 @@ jobs:
     steps:
       - name: Checkout
         uses: actions/checkout@v4
-        with:
-          fetch-depth: 0
+        with: { fetch-depth: 0 }
 
-      - name: Semgrep CI (diff-aware; fail on WARNING/ERROR)
+      - name: Semgrep CI (diff-aware)
         uses: returntocorp/semgrep-action@v1
         with:
           config: .semgrep/semgrep.yaml
           entryPoint: semgrep
-          args: ci --severity WARNING --severity ERROR
+          args: ci
+
+
 
       - name: Save text/json reports (for PR evidence)
         if: always()
