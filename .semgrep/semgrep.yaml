@@ -1,5 +1,91 @@
 configs:
   - .semgrep/rules.yml
+  
+rules:
+  # --- SECRETS: hard-coded strings that look like keys/tokens ---
+  - id: nodebb-secret-hardcoded
+    message: "Possible hard-coded secret/token."
+    severity: ERROR
+    languages: [javascript, typescript]
+    patterns:
+      # Look for common secret keywords followed by a long token-like value
+      - pattern-regex: '(?i)(sk_live|sk_test|api[_-]?key|secret|token|bearer)[A-Za-z0-9_\-]{8,}'
+
+  # --- SECRETS IN LOGS: avoid logging tokens/passwords ---
+  - id: nodebb-secret-logged
+    message: "Do not log sensitive values (authorization/token/password)."
+    severity: ERROR
+    languages: [javascript, typescript]
+    patterns:
+      # Matches: console.log(... authorization|token|password ...)
+      - pattern-regex: 'console\.log\([^)]*(authorization|token|password)[^)]*\)'
+
+  # --- XSS / DOM SINKS ---
+  - id: nodebb-unsafe-innerhtml
+    message: "Avoid innerHTML. Use textContent or sanitize() first."
+    severity: ERROR
+    languages: [javascript, typescript]
+    patterns:
+      - pattern: $EL.innerHTML = $X
+      - pattern-not: $EL.innerHTML = sanitize($X)
+      - pattern-not: $EL.innerHTML = DOMPurify.sanitize($X)
+
+  # --- DANGEROUS APIS / INJECTION SINKS ---
+  - id: nodebb-avoid-eval
+    message: "Avoid eval/Function constructor; security and perf risk."
+    severity: ERROR
+    languages: [javascript, typescript]
+    pattern-either:
+      - pattern: eval($X)
+      - pattern: new Function($X, ...)
+
+  - id: nodebb-unsafe-exec
+    message: "child_process.exec used; validate inputs to avoid command injection."
+    severity: ERROR
+    languages: [javascript, typescript]
+    patterns:
+      - pattern: child_process.exec($CMD, ...)
+
+  # --- FILESYSTEM with request-derived paths (heuristics) ---
+  - id: nodebb-unsafe-fs-path
+    message: "User-controlled path used in fs operation; validate/whitelist."
+    severity: WARNING
+    languages: [javascript, typescript]
+    pattern-either:
+      - pattern: fs.readFile(req.$FIELD, ...)
+      - pattern: fs.readFileSync(req.$FIELD, ...)
+      - pattern: fs.writeFile(req.$FIELD, ...)
+      - pattern: fs.writeFileSync(req.$FIELD, ...)
+      - pattern: fs.readFile(req.body, ...)
+      - pattern: fs.readFile(req.query, ...)
+      - pattern: fs.readFile(req.params, ...)
+      - pattern: fs.readFileSync(req.body, ...)
+      - pattern: fs.readFileSync(req.query, ...)
+      - pattern: fs.readFileSync(req.params, ...)
+      - pattern: fs.writeFile(req.body, ...)
+      - pattern: fs.writeFile(req.query, ...)
+      - pattern: fs.writeFile(req.params, ...)
+      - pattern: fs.writeFileSync(req.body, ...)
+      - pattern: fs.writeFileSync(req.query, ...)
+      - pattern: fs.writeFileSync(req.params, ...)
+
+  # --- MISSING AWAIT (simple heuristic for fetch only) ---
+  - id: nodebb-missing-await-fetch
+    message: "Likely missing await on fetch() Promise."
+    severity: WARNING
+    languages: [javascript, typescript]
+    patterns:
+      - pattern: fetch($ARGS)
+      - pattern-not: await fetch($ARGS)
+
+  # --- EXPRESS ROUTES without validation (very simple heuristic) ---
+  - id: nodebb-route-requires-validation
+    message: "Express route may be missing validate(...) middleware."
+    severity: WARNING
+    languages: [javascript, typescript]
+    patterns:
+      # Single-handler route like: app.get('/x', handler)
+      - pattern: app.$METHOD($PATH, $HANDLER)
 
 deploy:
   ignore_patterns:
