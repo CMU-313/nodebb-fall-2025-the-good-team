@@ -23,8 +23,8 @@ jobs:
         uses: returntocorp/semgrep-action@v1
         with:
           config: .semgrep/semgrep.yaml
-          entryPoint: semgrep ci
-          args: --severity WARNING --severity ERROR
+          entryPoint: semgrep
+          args: ci --severity WARNING --severity ERROR
 
       - name: Save text/json reports (for PR evidence)
         if: always()
