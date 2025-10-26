@@ -1,11 +1,9 @@
 configs:
-  - p/javascript
-  - p/nodejsscan
   - .semgrep/rules.yml
 
 deploy:
   ignore_patterns:
-    - "src/**"
+    - "dist/**"
     - "build/**"
     - "public/**"
     - "**/*.min.js"
