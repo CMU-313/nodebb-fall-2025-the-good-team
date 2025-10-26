@@ -21,11 +21,7 @@ jobs:
       - name: Semgrep CI (diff-aware)
         uses: returntocorp/semgrep-action@v1
         with:
-          config: .semgrep/semgrep.yaml
-          entryPoint: semgrep
-          args: ci
-
-
+          config: .semgrep/semgrep.yaml   # <-- keep only this
 
       - name: Save text/json reports (for PR evidence)
         if: always()
