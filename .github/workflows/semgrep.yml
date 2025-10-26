@@ -18,20 +18,23 @@ jobs:
         uses: actions/checkout@v4
         with: { fetch-depth: 0 }
 
-      - name: Semgrep CI (diff-aware)
+      # 🔁 Full repository scan (not diff-aware)
+      - name: Semgrep (full repo scan)
         uses: returntocorp/semgrep-action@v1
         with:
-          config: .semgrep/semgrep.yaml   # <-- keep only this
+          entryPoint: semgrep
+          args: scan --config .semgrep/rules.yml --error --timeout 120
 
+      # (optional) keep your artifact step as-is
       - name: Save text/json reports (for PR evidence)
         if: always()
         run: |
           mkdir -p artifacts
           docker run --rm -v "$PWD":/src semgrep/semgrep:latest \
-            semgrep scan --config .semgrep/semgrep.yaml \
+            semgrep scan --config .semgrep/rules.yml \
             --severity WARNING --severity ERROR > artifacts/semgrep.txt || true
           docker run --rm -v "$PWD":/src semgrep/semgrep:latest \
-            semgrep scan --config .semgrep/semgrep.yaml \
+            semgrep scan --config .semgrep/rules.yml \
             --severity WARNING --severity ERROR --json > artifacts/semgrep.json || true
 
       - name: Upload artifacts
