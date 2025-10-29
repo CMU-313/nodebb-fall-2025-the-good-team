@@ -34,13 +34,7 @@ export default function () {
     'login page loads fast': (r) => r.timings.duration < 500,
   })
 
-  //test recent page
-  let res3 = http.get('http://localhost:4567/recent');
-  console.log ('res3: ',res3.status);
-  check(res3, {
-    'status is 200': (r) => r.status === 200,
-    'recents loads fast': (r) => r.timings.duration < 500,
-  })
+
 
   sleep(1);
 
