@@ -42,6 +42,30 @@ jobs:
         run: |
           docker compose up -d
           sleep 30
+
+      - name: Wait for all routes to be available
+        run: |
+          echo "Waiting for /login route..."
+          for i in {1..30}; do
+            if curl -f http://localhost:4567/login > /dev/null 2>&1; then
+              echo "✓ Login route is ready"
+              break
+            fi
+              echo "Attempt $i/30: Login route not ready yet..."
+              sleep 2
+          done
+    
+          echo "Waiting for /recent route..."
+            for i in {1..30}; do
+              if curl -f http://localhost:4567/recent > /dev/null 2>&1; then
+                echo "✓ Recent route is ready"
+                break
+              fi
+                echo "Attempt $i/30: Recent route not ready yet..."
+                sleep 2
+          done
+    
+
       - name: Set up k6
         uses: grafana/setup-k6-action@v1
         with:
