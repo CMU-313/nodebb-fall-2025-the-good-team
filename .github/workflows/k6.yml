@@ -1,0 +1,65 @@
+name: k6 load tests
+
+on:
+  workflow_dispatch:
+    inputs:
+      base_url:
+        description: "Base URL to test (e.g., http://localhost:4567)"
+        required: false
+        default: "http://localhost:4567"
+      vus:
+        description: "Number of virtual users"
+        required: false
+        default: "10"
+      duration:
+        description: "Test duration (e.g., 1m, 30s)"
+        required: false
+        default: "1m"
+  pull_request:
+    paths:
+      - "k6-tests/**.js"
+      - ".github/workflows/k6.yml"
+  push:
+    paths:
+      - "k6-tests/**.js"
+      - ".github/workflows/k6.yml"
+
+jobs:
+  k6:
+    runs-on: ubuntu-latest
+    timeout-minutes: 30
+
+    env:
+      BASE_URL: ${{ github.event.inputs.base_url || 'http://localhost:4567' }}
+
+    steps:
+      - name: Check out repo
+        uses: actions/checkout@v4
+
+      # Optional: boot your app if you have docker-compose.
+      - name: Start app (docker-compose)
+        if: hashFiles('docker-compose*.yml') != ''
+        run: |
+          docker compose up -d
+          sleep 10
+
+      - name: Set up k6
+        uses: grafana/setup-k6-action@v1
+        with:
+          version: v0.49.0
+
+      - name: Run k6 load test
+        run: |
+          k6 run \
+            --vus ${{ github.event.inputs.vus || 10 }} \
+            --duration ${{ github.event.inputs.duration || '1m' }} \
+            --summary-export k6-summary.json \
+            k6-tests/loadtest.js
+
+      - name: Upload k6 results
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: k6-results
+          path: |
+            k6-summary.json
