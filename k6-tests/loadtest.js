@@ -3,6 +3,7 @@ import { check, sleep } from 'k6';
 
 export const options = {
   stages: [
+    { duration: '10s', target: 2 }, //slow ramp-up 
     { duration: '20s', target: 5 }, // ramp-up to 5 users
     { duration: '40s', target: 5 }, // stay at 5 users
     { duration: '20s', target: 0 }, // ramp-down to 0 users
