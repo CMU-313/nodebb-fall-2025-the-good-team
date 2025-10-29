@@ -28,26 +28,60 @@ jobs:
   k6:
     runs-on: ubuntu-latest
     timeout-minutes: 30
-
+    
     env:
       BASE_URL: ${{ github.event.inputs.base_url || 'http://localhost:4567' }}
-
+    
     steps:
       - name: Check out repo
         uses: actions/checkout@v4
-
-      # Optional: boot your app if you have docker-compose.
+      
       - name: Start app (docker-compose)
         if: hashFiles('docker-compose*.yml') != ''
         run: |
           docker compose up -d
-          sleep 10
-
+          echo "Waiting for NodeBB to start..."
+          sleep 30  # Initial wait
+      
+      - name: Wait for NodeBB to be fully ready
+        run: |
+          echo "Checking if NodeBB routes are available..."
+          
+          # Wait for homepage
+          timeout 60 bash -c 'until curl -f http://localhost:4567/ > /dev/null 2>&1; do 
+            echo "Waiting for homepage..."
+            sleep 2
+          done'
+          echo "✓ Homepage is up"
+          
+          # Wait for login page specifically
+          timeout 60 bash -c 'until curl -f http://localhost:4567/login > /dev/null 2>&1; do 
+            echo "Waiting for login route..."
+            sleep 2
+          done'
+          echo "✓ Login page is up"
+          
+          # Wait for recent page
+          timeout 60 bash -c 'until curl -f http://localhost:4567/recent > /dev/null 2>&1; do 
+            echo "Waiting for recent route..."
+            sleep 2
+          done'
+          echo "✓ Recent page is up"
+          
+          echo "All routes are ready!"
+      
+      - name: Verify routes before testing
+        run: |
+          echo "Final verification:"
+          curl -I http://localhost:4567/
+          curl -I http://localhost:4567/login
+          curl -I http://localhost:4567/recent
+      
       - name: Set up k6
         uses: grafana/setup-k6-action@v1
         with:
           version: v0.49.0
-
+      
       - name: Run k6 load test
         run: |
           k6 run \
@@ -55,7 +89,11 @@ jobs:
             --duration ${{ github.event.inputs.duration || '1m' }} \
             --summary-export k6-summary.json \
             k6-tests/loadtest.js
-
+      
+      - name: Show NodeBB logs on failure
+        if: failure()
+        run: docker compose logs
+      
       - name: Upload k6 results
         if: always()
         uses: actions/upload-artifact@v4
