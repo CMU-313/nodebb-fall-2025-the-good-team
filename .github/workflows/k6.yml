@@ -1,45 +1,33 @@
-name: k6-loadtest
+name: k6 load test
 
 on:
   pull_request:
-    branches: [ main, develop ]
   schedule:
-    # Midnight Eastern during Standard Time (~UTC-5)
-    - cron: '0 5 * * *'
+    - cron: "0 5 * * *" # daily at 05:00 UTC (~midnight ET)
   workflow_dispatch:
 
 jobs:
   k6:
     runs-on: ubuntu-latest
     env:
-      BASE_URL: http://127.0.0.1:4567
+      BASE_URL: ${{ http://128.2.220.232:4567/ }}
+
     steps:
-      - name: Checkout repo
+      - name: Check out repo
         uses: actions/checkout@v4
 
-      - name: Install k6
-        uses: grafana/setup-k6@v1
+      - name: Set up k6
+        uses: grafana/setup-k6-action@v1
         with:
-          k6-version: 'latest'
+          version: v0.49.0
 
-      # Optional: quick wait loop if your target is brought up by another job or is remote
-      - name: (Optional) Wait for target to respond
+      - name: Run k6
         run: |
-          tries=0
-          until curl -fsS "$BASE_URL/"; do
-            tries=$((tries+1))
-            if [ $tries -ge 30 ]; then
-              echo "Warning: $BASE_URL not reachable after 60s; continuing to k6 anyway."
-              break
-            fi
-            echo "Waiting for $BASE_URL ... ($tries/30)"; sleep 2
-          done
+          k6 run --summary-export k6-summary.json k6-tests/loadtest.js
 
-      - name: Run k6 test
-        run: k6 run --summary-export k6-summary.json k6-tests/loadtest.js
-
-      - name: Upload k6 summary
+      - name: Upload results
+        if: always()
         uses: actions/upload-artifact@v4
         with:
-          name: k6-summary
+          name: k6-results
           path: k6-summary.json
