@@ -10,7 +10,7 @@ jobs:
   k6:
     runs-on: ubuntu-latest
     env:
-      BASE_URL: ${{ inputs.base_url || 'http://localhost:4567' }}
+      BASE_URL: ${{ http://128.2.220.232:4567/ }}
 
     steps:
       - name: Check out repo
