@@ -24,13 +24,17 @@ export default function () {
   let res1 = http.get(`${BASE_URL}/`);
   console.log('res1: ', res1.status);
   check(res1, {
-    'status is 200': (r) => r.status === 200,
+    'home page status is 200': (r) => r.status === 200,
     'homepage loads fast': (r) => r.timings.duration < 500,
   })
 
   sleep(1);
 
-  
+  const apiRes = http.get(`${BASE_URL}/api/config`);
+  check(apiRes, {
+    'api/config status is 200': (r) => r.status === 200,
+    'api/config loads fast': (r) => r.timings.duration < 700,
+  });
 
 };
 
