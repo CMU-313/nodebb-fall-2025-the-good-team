@@ -1,80 +1,52 @@
+# .github/workflows/k6.yml (minimal)
 name: k6 load test
 
 on:
   pull_request:
   schedule:
-    - cron: "0 5 * * *" # daily 05:00 UTC (~midnight ET)
+    - cron: "0 5 * * *"   # ~midnight ET
   workflow_dispatch:
-    inputs:
-      base_url:
-        description: "Override base URL (leave blank to use local compose)"
-        required: false
-        default: ""
 
 jobs:
   k6:
     runs-on: ubuntu-latest
     env:
-      # If base_url input is empty, we'll default to local compose URL.
-      INPUT_BASE_URL: ${{ inputs.base_url }}
+      BASE_URL: http://127.0.0.1:4567
+      CATEGORY_PATH: /category/2/general-discussion  # override-able later
 
     steps:
-      - name: Check out repo
-        uses: actions/checkout@v4
+      - uses: actions/checkout@v4
 
-      # Start your local stack if docker-compose file exists and no external BASE_URL was provided
-      - name: Start app via docker-compose (if needed)
-        if: hashFiles('docker-compose*.yml') != '' && env.INPUT_BASE_URL == ''
+      # Start local stack if you have docker-compose; otherwise delete this block and set BASE_URL to staging
+      - name: Start app
+        if: hashFiles('docker-compose*.yml') != ''
         run: |
           docker compose up -d
-          echo "COMPOSE_UP=1" >> $GITHUB_ENV
-          # Show containers
           docker ps
 
-      # Decide BASE_URL
-      - name: Set BASE_URL
+      - name: Wait for homepage
         run: |
-          if [ -n "${INPUT_BASE_URL}" ]; then
-            echo "BASE_URL=${INPUT_BASE_URL}" >> $GITHUB_ENV
-          else
-            # use local compose default
-            echo "BASE_URL=http://127.0.0.1:4567" >> $GITHUB_ENV
-          fi
-          echo "Using BASE_URL=${BASE_URL:-$INPUT_BASE_URL}"
-
-      # Wait for the app to be reachable (works for local or external URL)
-      - name: Wait for app
-        run: |
-          set -e
-          for path in "/" "/api/config"; do
-            echo "Waiting for ${BASE_URL}${path} ..."
-            for i in {1..60}; do
-              if curl -fsS -o /dev/null "${BASE_URL}${path}"; then
-                echo "✓ ${path} ready"
-                break
-              fi
-              sleep 2
-              if [ $i -eq 60 ]; then
-                echo "✗ ${path} never became ready"
-                exit 1
-              fi
-            done
+          for i in {1..60}; do
+            if curl -fsS -o /dev/null "${BASE_URL}/"; then
+              echo "✓ Home ready"; break
+            fi
+            sleep 2
+            if [ $i -eq 60 ]; then echo "✗ Home not ready"; exit 1; fi
           done
 
-      - name: Set up k6
-        uses: grafana/setup-k6-action@v1
+      - uses: grafana/setup-k6-action@v1
         with:
           version: v0.49.0
 
       - name: Run k6
         env:
-          BASE_URL: ${{ env.BASE_URL }}   # your script should read __ENV.BASE_URL
+          BASE_URL: ${{ env.BASE_URL }}
+          CATEGORY_PATH: ${{ env.CATEGORY_PATH }}
         run: |
           k6 run --summary-export k6-summary.json k6-test/loadtest.js
 
-      - name: Upload results
+      - uses: actions/upload-artifact@v4
         if: always()
-        uses: actions/upload-artifact@v4
         with:
           name: k6-results
           path: k6-summary.json
