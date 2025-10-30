@@ -30,10 +30,10 @@ export default function () {
 
   sleep(1);
 
-  const apiRes = http.get(`${BASE_URL}/api/config`);
-  check(apiRes, {
-    'api/config status is 200': (r) => r.status === 200,
-    'api/config loads fast': (r) => r.timings.duration < 700,
+  const category = http.get(`${BASE_URL}/category/2/general-discussion`);
+  check(category, {
+    'category status is 200': (r) => r.status === 200,
+    'category loads fast': (r) => r.timings.duration < 700,
   });
 
 };
