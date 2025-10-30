@@ -23,7 +23,7 @@ jobs:
 
       - name: Run k6
         run: |
-          k6 run --summary-export k6-summary.json k6-test/loadtest.js
+          k6 run --summary-export k6-summary.json k6-tests/loadtest.js
 
       - name: Upload results
         if: always()
