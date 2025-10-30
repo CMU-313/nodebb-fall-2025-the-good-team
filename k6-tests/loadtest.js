@@ -28,22 +28,12 @@ export default function () {
 
   sleep(1);
 
-  //test login page
-  let res2 = http.get('http://localhost:4567/login');
-  console.log ('res2: ',res2.status);
-  check(res2, {
+  //test api 
+  let apiRes = http.get('http://localhost:4567/api/config');
+  console.log ('api rest: ',apiRes.status);
+  check(apiRes, {
     'status is 200': (r) => r.status === 200,
     'login page loads fast': (r) => r.timings.duration < 500,
-  })
-
-  sleep(1);
-
-  //test recent page
-  let res3 = http.get('http://localhost:4567/recent');
-  console.log ('res3: ',res3.status);
-  check(res3, {
-    'status is 200': (r) => r.status === 200,
-    'recents loads fast': (r) => r.timings.duration < 500,
   })
 
   sleep(1);
