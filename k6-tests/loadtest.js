@@ -17,7 +17,7 @@ export const options = {
 
 };
 
-const BASE_URL = 'http://0.0.0.0::4567';
+const BASE_URL = 'http://localhost:4567';
 
 export default function () {
   //test homepage
