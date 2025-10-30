@@ -16,7 +16,7 @@ const BASE_URL = 'http://localhost:4567';
 
 export default function () {
   //test homepage
-  const res = http.get('{BASE_URL}/');
+  const res = http.get(`${BASE_URL}/`);
   console.log('res1: ', res.status);
   check(res, {
     'status is 200': (r) => r.status === 200,
@@ -24,7 +24,7 @@ export default function () {
   })
 
   //test api 
-  let apiRes = http.get('{BASE_URL}/api/config');
+  let apiRes = http.get(`${BASE_URL}/api/config`);
   console.log ('api rest: ',apiRes.status);
   check(apiRes, {
     'status is 200': (r) => r.status === 200,
