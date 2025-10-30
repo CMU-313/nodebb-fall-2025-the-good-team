@@ -1,85 +1,80 @@
-name: k6 load tests
+name: k6 load test
 
 on:
+  pull_request:
+  schedule:
+    - cron: "0 5 * * *" # daily 05:00 UTC (~midnight ET)
   workflow_dispatch:
     inputs:
       base_url:
-        description: "Base URL to test (e.g., http://localhost:4567)"
+        description: "Override base URL (leave blank to use local compose)"
         required: false
-        default: "http://localhost:4567"
-      vus:
-        description: "Number of virtual users"
-        required: false
-        default: "10"
-      duration:
-        description: "Test duration (e.g., 1m, 30s)"
-        required: false
-        default: "1m"
-  pull_request:
-    paths:
-      - "k6-tests/**.js"
-      - ".github/workflows/k6.yml"
-  schedule:
-    - cron: "0 5 * * *"
+        default: ""
 
 jobs:
   k6:
     runs-on: ubuntu-latest
-    timeout-minutes: 30
-
     env:
-      BASE_URL: ${{ github.event.inputs.base_url || 'http://localhost:4567' }}
+      # If base_url input is empty, we'll default to local compose URL.
+      INPUT_BASE_URL: ${{ inputs.base_url }}
 
     steps:
       - name: Check out repo
         uses: actions/checkout@v4
 
-      # Optional: boot your app if you have docker-compose.
-      - name: Start app (docker-compose)
-        if: hashFiles('docker-compose*.yml') != ''
+      # Start your local stack if docker-compose file exists and no external BASE_URL was provided
+      - name: Start app via docker-compose (if needed)
+        if: hashFiles('docker-compose*.yml') != '' && env.INPUT_BASE_URL == ''
         run: |
           docker compose up -d
-          sleep 30
+          echo "COMPOSE_UP=1" >> $GITHUB_ENV
+          # Show containers
+          docker ps
 
-      - name: Wait for all routes to be available
+      # Decide BASE_URL
+      - name: Set BASE_URL
         run: |
-          echo "Waiting for /login route..."
-          for i in {1..30}; do
-            if curl -f http://localhost:4567/login > /dev/null 2>&1; then
-              echo "✓ Login route is ready"
-              break
-            fi
-              echo "Attempt $i/30: Login route not ready yet..."
-              sleep 2
-          done
-    
-          echo "Waiting for /recent route..."
-            for i in {1..30}; do
-              if curl -f http://localhost:4567/recent > /dev/null 2>&1; then
-                echo "✓ Recent route is ready"
+          if [ -n "${INPUT_BASE_URL}" ]; then
+            echo "BASE_URL=${INPUT_BASE_URL}" >> $GITHUB_ENV
+          else
+            # use local compose default
+            echo "BASE_URL=http://127.0.0.1:4567" >> $GITHUB_ENV
+          fi
+          echo "Using BASE_URL=${BASE_URL:-$INPUT_BASE_URL}"
+
+      # Wait for the app to be reachable (works for local or external URL)
+      - name: Wait for app
+        run: |
+          set -e
+          for path in "/"; do
+            echo "Waiting for ${BASE_URL}${path} ..."
+            for i in {1..60}; do
+              if curl -fsS -o /dev/null "${BASE_URL}${path}"; then
+                echo "✓ ${path} ready"
                 break
               fi
-                echo "Attempt $i/30: Recent route not ready yet..."
-                sleep 2
+              sleep 2
+              if [ $i -eq 60 ]; then
+                echo "✗ ${path} never became ready"
+                exit 1
+              fi
+            done
           done
-    
 
       - name: Set up k6
         uses: grafana/setup-k6-action@v1
         with:
           version: v0.49.0
 
-      - name: Run k6 load test
+      - name: Run k6
+        env:
+          BASE_URL: ${{ env.BASE_URL }}   # your script should read __ENV.BASE_URL
         run: |
-          k6 run \
-            --vus ${{ github.event.inputs.vus || 10 }} \
-            --duration ${{ github.event.inputs.duration || '1m' }} \
-            --summary-export k6-summary.json \
-            k6-tests/loadtest.js
-      - name: Upload k6 results
+          k6 run --summary-export k6-summary.json k6-tests/loadtest.js
+
+      - name: Upload results
         if: always()
         uses: actions/upload-artifact@v4
         with:
           name: k6-results
-          path: |
-            k6-summary.json
+          path: k6-summary.json
