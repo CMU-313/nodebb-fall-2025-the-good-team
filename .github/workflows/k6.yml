@@ -1,10 +1,11 @@
-# .github/workflows/k6.yml (minimal)
-name: k6 load test
+name: k6-loadtest
 
 on:
   pull_request:
+    branches: [ main, develop ]
   schedule:
-    - cron: "0 5 * * *"   # ~midnight ET
+    # Midnight Eastern during Standard Time (~UTC-5)
+    - cron: '0 5 * * *'
   workflow_dispatch:
 
 jobs:
@@ -12,41 +13,33 @@ jobs:
     runs-on: ubuntu-latest
     env:
       BASE_URL: http://127.0.0.1:4567
-      CATEGORY_PATH: /category/2/general-discussion  # override-able later
-
     steps:
-      - uses: actions/checkout@v4
+      - name: Checkout repo
+        uses: actions/checkout@v4
 
-      # Start local stack if you have docker-compose; otherwise delete this block and set BASE_URL to staging
-      - name: Start app
-        if: hashFiles('docker-compose*.yml') != ''
-        run: |
-          docker compose up -d
-          docker ps
+      - name: Install k6
+        uses: grafana/setup-k6@v1
+        with:
+          k6-version: 'latest'
 
-      - name: Wait for homepage
+      # Optional: quick wait loop if your target is brought up by another job or is remote
+      - name: (Optional) Wait for target to respond
         run: |
-          for i in {1..60}; do
-            if curl -fsS -o /dev/null "${BASE_URL}/"; then
-              echo "✓ Home ready"; break
+          tries=0
+          until curl -fsS "$BASE_URL/"; do
+            tries=$((tries+1))
+            if [ $tries -ge 30 ]; then
+              echo "Warning: $BASE_URL not reachable after 60s; continuing to k6 anyway."
+              break
             fi
-            sleep 2
-            if [ $i -eq 60 ]; then echo "✗ Home not ready"; exit 1; fi
+            echo "Waiting for $BASE_URL ... ($tries/30)"; sleep 2
           done
 
-      - uses: grafana/setup-k6-action@v1
-        with:
-          version: v0.49.0
+      - name: Run k6 test
+        run: k6 run --summary-export k6-summary.json k6-tests/loadtest.js
 
-      - name: Run k6
-        env:
-          BASE_URL: ${{ env.BASE_URL }}
-          CATEGORY_PATH: ${{ env.CATEGORY_PATH }}
-        run: |
-          k6 run --summary-export k6-summary.json k6-tests/loadtest.js
-
-      - uses: actions/upload-artifact@v4
-        if: always()
+      - name: Upload k6 summary
+        uses: actions/upload-artifact@v4
         with:
-          name: k6-results
+          name: k6-summary
           path: k6-summary.json
