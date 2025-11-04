@@ -1,23 +1,22 @@
 'use strict';
 
 define('composer/formatting', [
-	'composer/preview', 'composer/resize', 'topicThumbs', 'screenfull',
+	'composer/preview',
+	'composer/resize',
+	'topicThumbs',
+	'screenfull',
 ], function (preview, resize, topicThumbs, screenfull) {
 	var formatting = {};
 
 	var formattingDispatchTable = {
 		picture: function () {
 			var postContainer = this;
-			postContainer.find('#files')
-				.attr('accept', 'image/*')
-				.click();
+			postContainer.find('#files').attr('accept', 'image/*').click();
 		},
 
 		upload: function () {
 			var postContainer = this;
-			postContainer.find('#files')
-				.attr('accept', '')
-				.click();
+			postContainer.find('#files').attr('accept', '').click();
 		},
 
 		thumbs: function () {
@@ -27,13 +26,18 @@ define('composer/formatting', [
 				const uuid = postContainer.get(0).getAttribute('data-uuid');
 				const composerObj = composer.posts[uuid];
 
-				if (composerObj.action === 'topics.post' || (composerObj.action === 'posts.edit' && composerObj.isMain)) {
-					topicThumbs.modal.open({ id: uuid, pid: composerObj.pid }).then(() => {
-						postContainer.trigger('thumb.uploaded'); // toggle draft save
+				if (
+					composerObj.action === 'topics.post' ||
+					(composerObj.action === 'posts.edit' && composerObj.isMain)
+				) {
+					topicThumbs.modal
+						.open({ id: uuid, pid: composerObj.pid })
+						.then(() => {
+							postContainer.trigger('thumb.uploaded'); // toggle draft save
 
-						// Update client-side with count
-						composer.updateThumbCount(uuid, postContainer);
-					});
+							// Update client-side with count
+							composer.updateThumbCount(uuid, postContainer);
+						});
 				}
 			});
 		},
@@ -61,12 +65,17 @@ define('composer/formatting', [
 					postContainer.find('.write').focus();
 
 					$(window).on('resize', onResize);
-					$(window).one('action:composer.topics.post action:composer.posts.reply action:composer.posts.edit action:composer.discard', screenfull.exit);
+					$(window).one(
+						'action:composer.topics.post action:composer.posts.reply action:composer.posts.edit action:composer.discard',
+						screenfull.exit,
+					);
 				}
 			});
 
 			screenfull.toggle(postContainer.get(0));
-			$(window).trigger('action:composer.fullscreen', { postContainer: postContainer });
+			$(window).trigger('action:composer.fullscreen', {
+				postContainer: postContainer,
+			});
 		},
 	};
 
@@ -99,19 +108,24 @@ define('composer/formatting', [
 		});
 
 		const els = formattingBarEl.find('.formatting-group>li');
-		els.tooltip({
-			container: '#content',
-			animation: false,
-			trigger: 'manual',
-		}).on('mouseenter', function (ev) {
-			const target = $(ev.target);
-			const isDropdown = target.hasClass('dropdown-menu') || !!target.parents('.dropdown-menu').length;
-			if (!isDropdown) {
-				$(this).tooltip('show');
-			}
-		}).on('click mouseleave', function () {
-			$(this).tooltip('hide');
-		});
+		els
+			.tooltip({
+				container: '#content',
+				animation: false,
+				trigger: 'manual',
+			})
+			.on('mouseenter', function (ev) {
+				const target = $(ev.target);
+				const isDropdown =
+					target.hasClass('dropdown-menu') ||
+					!!target.parents('.dropdown-menu').length;
+				if (!isDropdown) {
+					$(this).tooltip('show');
+				}
+			})
+			.on('click mouseleave', function () {
+				$(this).tooltip('hide');
+			});
 	};
 
 	function generateBadgetHtml(btn) {
@@ -177,17 +191,27 @@ define('composer/formatting', [
 	};
 
 	formatting.addHandler = function (postContainer) {
-		postContainer.on('click', '.formatting-bar [data-format]', function (event) {
-			var format = $(this).attr('data-format');
-			var textarea = $(this).parents('[component="composer"]').find('textarea')[0];
+		postContainer.on(
+			'click',
+			'.formatting-bar [data-format]',
+			function (event) {
+				var format = $(this).attr('data-format');
+				var textarea = $(this)
+					.parents('[component="composer"]')
+					.find('textarea')[0];
 
-			if (formattingDispatchTable.hasOwnProperty(format)) {
-				formattingDispatchTable[format].call(
-					postContainer, textarea, textarea.selectionStart, textarea.selectionEnd, event
-				);
-				preview.render(postContainer);
-			}
-		});
+				if (formattingDispatchTable.hasOwnProperty(format)) {
+					formattingDispatchTable[format].call(
+						postContainer,
+						textarea,
+						textarea.selectionStart,
+						textarea.selectionEnd,
+						event,
+					);
+					preview.render(postContainer);
+				}
+			},
+		);
 	};
 
 	return formatting;

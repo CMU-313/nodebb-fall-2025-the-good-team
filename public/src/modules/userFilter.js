@@ -1,6 +1,11 @@
 'use strict';
 
-define('userFilter', ['api', 'hooks', 'slugify', 'benchpress'], function (api, hooks, slugify, benchpress) {
+define('userFilter', ['api', 'hooks', 'slugify', 'benchpress'], function (
+	api,
+	hooks,
+	slugify,
+	benchpress,
+) {
 	const userFilter = {};
 
 	userFilter.init = function (el, options) {
@@ -12,7 +17,7 @@ define('userFilter', ['api', 'hooks', 'slugify', 'benchpress'], function (api, h
 		let placeholderHtml;
 		let selectedUsers = [];
 		if (options.selectedUsers) {
-			selectedUsers = options.selectedUsers.map(u => ({ ...u }));
+			selectedUsers = options.selectedUsers.map((u) => ({ ...u }));
 		}
 		hooks.fire('action:user.filter.options', { el: el, options: options });
 
@@ -30,7 +35,11 @@ define('userFilter', ['api', 'hooks', 'slugify', 'benchpress'], function (api, h
 				payload[block] = selectedUsers;
 			}
 
-			const html = await app.parseAndTranslate(options.template, block, payload);
+			const html = await app.parseAndTranslate(
+				options.template,
+				block,
+				payload,
+			);
 			el.find('[component="user/filter/selected"]').html(html);
 		}
 
@@ -58,7 +67,7 @@ define('userFilter', ['api', 'hooks', 'slugify', 'benchpress'], function (api, h
 			}
 			if (!result.users.length) {
 				el.find('[component="user/filter/results"]').translateHtml(
-					'[[users:no-users-found]]'
+					'[[users:no-users-found]]',
 				);
 				return;
 			}
@@ -68,33 +77,45 @@ define('userFilter', ['api', 'hooks', 'slugify', 'benchpress'], function (api, h
 				uidToUser[user.uid] = user;
 			});
 
-			const html = await app.parseAndTranslate(options.template, 'userFilterResults', {
-				userFilterResults: result.users,
-			});
+			const html = await app.parseAndTranslate(
+				options.template,
+				'userFilterResults',
+				{
+					userFilterResults: result.users,
+				},
+			);
 			el.find('[component="user/filter/results"]').html(html);
 
-			el.find('[component="user/filter/results"] [data-uid]').on('click', async function () {
-				const clickedUid = parseInt($(this).attr('data-uid'), 10);
-				if (!selectedUsers.find(u => u.uid === clickedUid)) {
-					selectedUsers.push(uidToUser[clickedUid]);
-					await onSelectionChange();
-				}
-			});
+			el.find('[component="user/filter/results"] [data-uid]').on(
+				'click',
+				async function () {
+					const clickedUid = parseInt($(this).attr('data-uid'), 10);
+					if (!selectedUsers.find((u) => u.uid === clickedUid)) {
+						selectedUsers.push(uidToUser[clickedUid]);
+						await onSelectionChange();
+					}
+				},
+			);
 		}
 
 		el.find('[component="user/filter/search"]').on('keyup', () => {
 			el.find('[component="user/filter/results"]').html(placeholderHtml);
 		});
 
-		el.find('[component="user/filter/search"]').on('keyup', utils.debounce(function () {
-			if (app.user.privileges['search:users']) {
-				doSearch();
-			}
-		}, 1000));
+		el.find('[component="user/filter/search"]').on(
+			'keyup',
+			utils.debounce(function () {
+				if (app.user.privileges['search:users']) {
+					doSearch();
+				}
+			}, 1000),
+		);
 
 		el.on('click', '[component="user/filter/delete"]', async function () {
 			const uid = $(this).attr('data-uid');
-			selectedUsers = selectedUsers.filter(u => parseInt(u.uid, 10) !== parseInt(uid, 10));
+			selectedUsers = selectedUsers.filter(
+				(u) => parseInt(u.uid, 10) !== parseInt(uid, 10),
+			);
 			await onSelectionChange();
 		});
 
@@ -115,9 +136,11 @@ define('userFilter', ['api', 'hooks', 'slugify', 'benchpress'], function (api, h
 		});
 
 		// Pre-render placeholders for search
-		benchpress.render(options.placeholderTemplate || 'partials/userFilter-placeholders').then((html) => {
-			placeholderHtml = html;
-		});
+		benchpress
+			.render(options.placeholderTemplate || 'partials/userFilter-placeholders')
+			.then((html) => {
+				placeholderHtml = html;
+			});
 	};
 
 	return userFilter;

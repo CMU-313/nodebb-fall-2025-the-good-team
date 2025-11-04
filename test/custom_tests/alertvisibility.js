@@ -32,14 +32,22 @@ describe('Unit Test: Post Submission Alert Message Generation', () => {
 		const key = 'everyone';
 		const expected = 'Posted publicly to everyone';
 		const result = generateAlertMessage(key);
-		assert.strictEqual(result, expected, `Expected message for "${key}" failed.`);
+		assert.strictEqual(
+			result,
+			expected,
+			`Expected message for "${key}" failed.`,
+		);
 	});
 
 	it('2. Generates correct message for "all_instructors" (restricted) visibility', function () {
 		const key = 'all_instructors';
 		const expected = 'Posted only to all instructors';
 		const result = generateAlertMessage(key);
-		assert.strictEqual(result, expected, `Expected message for "${key}" failed.`);
+		assert.strictEqual(
+			result,
+			expected,
+			`Expected message for "${key}" failed.`,
+		);
 	});
 
 	it('3. Generates correct message for private "user:<uid>" visibility, including username', function () {
@@ -47,7 +55,11 @@ describe('Unit Test: Post Submission Alert Message Generation', () => {
 		const expected = `Posted privately to only ${TARGET_USER}`;
 		// Pass the resolved username, mimicking the server having done the lookup
 		const result = generateAlertMessage(key, TARGET_USER);
-		assert.strictEqual(result, expected, `Expected message for private post failed.`);
+		assert.strictEqual(
+			result,
+			expected,
+			`Expected message for private post failed.`,
+		);
 	});
 
 	it('4. Handles private "user:<uid>" visibility gracefully if username lookup fails', function () {
@@ -62,6 +74,10 @@ describe('Unit Test: Post Submission Alert Message Generation', () => {
 		const key = 'unknown_key';
 		const expected = 'Post submitted successfully!';
 		const result = generateAlertMessage(key);
-		assert.strictEqual(result, expected, `Expected fallback message for unknown key failed.`);
+		assert.strictEqual(
+			result,
+			expected,
+			`Expected fallback message for unknown key failed.`,
+		);
 	});
 });

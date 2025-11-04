@@ -22,10 +22,26 @@ define('composer/drafts', ['api', 'alerts'], function (api, alerts) {
 			saveDraft(postContainer, draftIconEl, postData);
 		}
 
-		postContainer.on('keyup', 'textarea, input.handle, input.title', utils.debounce(doSaveDraft, draftSaveDelay));
-		postContainer.on('click', 'input[type="checkbox"]', utils.debounce(doSaveDraft, draftSaveDelay));
-		postContainer.on('click', '[component="category/list"] [data-cid]', utils.debounce(doSaveDraft, draftSaveDelay));
-		postContainer.on('itemAdded', '.tags', utils.debounce(doSaveDraft, draftSaveDelay));
+		postContainer.on(
+			'keyup',
+			'textarea, input.handle, input.title',
+			utils.debounce(doSaveDraft, draftSaveDelay),
+		);
+		postContainer.on(
+			'click',
+			'input[type="checkbox"]',
+			utils.debounce(doSaveDraft, draftSaveDelay),
+		);
+		postContainer.on(
+			'click',
+			'[component="category/list"] [data-cid]',
+			utils.debounce(doSaveDraft, draftSaveDelay),
+		);
+		postContainer.on(
+			'itemAdded',
+			'.tags',
+			utils.debounce(doSaveDraft, draftSaveDelay),
+		);
 		postContainer.on('thumb.uploaded', doSaveDraft);
 
 		draftIconEl.on('animationend', function () {
@@ -36,7 +52,7 @@ define('composer/drafts', ['api', 'alerts'], function (api, alerts) {
 			// remove all drafts from the open list
 			const open = drafts.getList('open');
 			if (open.length) {
-				open.forEach(save_id => drafts.removeFromDraftList('open', save_id));
+				open.forEach((save_id) => drafts.removeFromDraftList('open', save_id));
 			}
 		});
 
@@ -71,7 +87,9 @@ define('composer/drafts', ['api', 'alerts'], function (api, alerts) {
 			});
 			return draft;
 		} catch (e) {
-			console.warn(`[composer/drafts] Could not get draft ${save_id}, removing`);
+			console.warn(
+				`[composer/drafts] Could not get draft ${save_id}, removing`,
+			);
 			drafts.removeFromDraftList('available');
 			drafts.removeFromDraftList('open');
 			return null;
@@ -79,7 +97,12 @@ define('composer/drafts', ['api', 'alerts'], function (api, alerts) {
 	};
 
 	function saveDraft(postContainer, draftIconEl, postData) {
-		if (canSave(app.user.uid ? 'localStorage' : 'sessionStorage') && postData && postData.save_id && postContainer.length) {
+		if (
+			canSave(app.user.uid ? 'localStorage' : 'sessionStorage') &&
+			postData &&
+			postData.save_id &&
+			postContainer.length
+		) {
 			const titleEl = postContainer.find('input.title');
 			const title = titleEl && titleEl.length && titleEl.val();
 			const raw = postContainer.find('textarea').val();
@@ -157,7 +180,10 @@ define('composer/drafts', ['api', 'alerts'], function (api, alerts) {
 	};
 
 	drafts.addToDraftList = function (set, save_id) {
-		if (!canSave(app.user.uid ? 'localStorage' : 'sessionStorage') || !save_id) {
+		if (
+			!canSave(app.user.uid ? 'localStorage' : 'sessionStorage') ||
+			!save_id
+		) {
 			return;
 		}
 		const list = drafts.getList(set);
@@ -168,7 +194,10 @@ define('composer/drafts', ['api', 'alerts'], function (api, alerts) {
 	};
 
 	drafts.removeFromDraftList = function (set, save_id) {
-		if (!canSave(app.user.uid ? 'localStorage' : 'sessionStorage') || !save_id) {
+		if (
+			!canSave(app.user.uid ? 'localStorage' : 'sessionStorage') ||
+			!save_id
+		) {
 			return;
 		}
 		const list = drafts.getList(set);
@@ -218,13 +247,15 @@ define('composer/drafts', ['api', 'alerts'], function (api, alerts) {
 		const draft = drafts.get(postData.save_id);
 
 		if (draft && draft.uuid) {
-			api.put(`/topics/${draft.uuid}/thumbs`, {
-				tid: newUUID,
-			}).then(() => {
-				require(['composer'], function (composer) {
-					composer.updateThumbCount(newUUID, postContainer);
+			api
+				.put(`/topics/${draft.uuid}/thumbs`, {
+					tid: newUUID,
+				})
+				.then(() => {
+					require(['composer'], function (composer) {
+						composer.updateThumbCount(newUUID, postContainer);
+					});
 				});
-			});
 		}
 	};
 
@@ -246,7 +277,12 @@ define('composer/drafts', ['api', 'alerts'], function (api, alerts) {
 	};
 
 	drafts.loadOpen = function () {
-		if (ajaxify.data.template.login || ajaxify.data.template.register || (config.hasOwnProperty('openDraftsOnPageLoad') && !config.openDraftsOnPageLoad)) {
+		if (
+			ajaxify.data.template.login ||
+			ajaxify.data.template.register ||
+			(config.hasOwnProperty('openDraftsOnPageLoad') &&
+				!config.openDraftsOnPageLoad)
+		) {
 			return;
 		}
 		// Load drafts if they were open
@@ -282,7 +318,10 @@ define('composer/drafts', ['api', 'alerts'], function (api, alerts) {
 				composer.newTopic({
 					save_id: draft.save_id,
 					cid: draft.cid,
-					handle: app.user && app.user.uid ? undefined : utils.escapeHTML(draft.handle),
+					handle:
+						app.user && app.user.uid
+							? undefined
+							: utils.escapeHTML(draft.handle),
 					title: utils.escapeHTML(draft.title),
 					body: draft.text,
 					tags: String(draft.tags || '').split(','),
@@ -322,18 +361,21 @@ define('composer/drafts', ['api', 'alerts'], function (api, alerts) {
 			storage.removeItem(x);
 			return true;
 		} catch (e) {
-			return e instanceof DOMException && (
+			return (
+				e instanceof DOMException &&
 				// everything except Firefox
-				e.code === 22 ||
-				// Firefox
-				e.code === 1014 ||
-				// test name field too, because code might not be present
-				// everything except Firefox
-				e.name === 'QuotaExceededError' ||
-				// Firefox
-				e.name === 'NS_ERROR_DOM_QUOTA_REACHED') &&
+				(e.code === 22 ||
+					// Firefox
+					e.code === 1014 ||
+					// test name field too, because code might not be present
+					// everything except Firefox
+					e.name === 'QuotaExceededError' ||
+					// Firefox
+					e.name === 'NS_ERROR_DOM_QUOTA_REACHED') &&
 				// acknowledge QuotaExceededError only if there's something already stored
-				(storage && storage.length !== 0);
+				storage &&
+				storage.length !== 0
+			);
 		}
 	}
 

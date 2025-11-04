@@ -4,7 +4,13 @@ const assert = require('assert');
 const { JSDOM } = require('jsdom');
 
 describe('UI Test: Visibility Button Integration (socket + UI)', function () {
-	let window, document, $, socketEmitMock, alertsAlertMock, alertsErrorMock, emitCallArgs;
+	let window,
+		document,
+		$,
+		socketEmitMock,
+		alertsAlertMock,
+		alertsErrorMock,
+		emitCallArgs;
 
 	beforeEach(() => {
 		// Reset emitCallArgs for each test
@@ -55,22 +61,28 @@ describe('UI Test: Visibility Button Integration (socket + UI)', function () {
 			if (btn.hasClass('disabled')) return false;
 
 			const pid = btn.attr('data-pid');
-			global.socket.emit('posts.toggleVisibility', { pid: pid }, function (err, result) {
-				if (err) return global.alerts.error(err);
-				if (result && result.visibility) {
-					const isEveryone = result.visibility === 'everyone';
-					btn.attr('data-is-everyone', isEveryone ? 'true' : 'false');
-					btn.text(isEveryone ? 'Make Private' : 'Make Public');
-				}
-				const message =
-					result.visibility === 'everyone' ? 'Post is now visible to everyone' : 'Post is now only visible to instructors';
-				global.alerts.alert({
-					type: 'success',
-					timeout: 5000,
-					title: 'Post visibility updated!',
-					message,
-				});
-			});
+			global.socket.emit(
+				'posts.toggleVisibility',
+				{ pid: pid },
+				function (err, result) {
+					if (err) return global.alerts.error(err);
+					if (result && result.visibility) {
+						const isEveryone = result.visibility === 'everyone';
+						btn.attr('data-is-everyone', isEveryone ? 'true' : 'false');
+						btn.text(isEveryone ? 'Make Private' : 'Make Public');
+					}
+					const message =
+						result.visibility === 'everyone'
+							? 'Post is now visible to everyone'
+							: 'Post is now only visible to instructors';
+					global.alerts.alert({
+						type: 'success',
+						timeout: 5000,
+						title: 'Post visibility updated!',
+						message,
+					});
+				},
+			);
 			return false;
 		});
 	});
@@ -93,13 +105,20 @@ describe('UI Test: Visibility Button Integration (socket + UI)', function () {
 		const cb = emitCallArgs[2];
 		cb(null, { visibility: 'all_instructors' });
 
-		assert.strictEqual(btn.text(), 'Make Public', 'Button text should update to "Make Public"');
+		assert.strictEqual(
+			btn.text(),
+			'Make Public',
+			'Button text should update to "Make Public"',
+		);
 		assert.strictEqual(btn.attr('data-is-everyone'), 'false');
 
 		assert.ok(alertsAlertMock.called, 'Alert should be called');
 		const alertCall = alertsAlertMock.lastCall;
 		assert.strictEqual(alertCall.title, 'Post visibility updated!');
-		assert.strictEqual(alertCall.message, 'Post is now only visible to instructors');
+		assert.strictEqual(
+			alertCall.message,
+			'Post is now only visible to instructors',
+		);
 	});
 
 	it('3. Shows correct message when toggled back to everyone', function () {
@@ -111,7 +130,7 @@ describe('UI Test: Visibility Button Integration (socket + UI)', function () {
 
 		assert.strictEqual(btn.text(), 'Make Private');
 		assert.strictEqual(btn.attr('data-is-everyone'), 'true');
-		
+
 		const alertCall = alertsAlertMock.lastCall;
 		assert.strictEqual(alertCall.message, 'Post is now visible to everyone');
 	});

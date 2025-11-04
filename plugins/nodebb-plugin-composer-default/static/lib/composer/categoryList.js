@@ -1,7 +1,9 @@
 'use strict';
 
 define('composer/categoryList', [
-	'categorySelector', 'taskbar', 'api',
+	'categorySelector',
+	'taskbar',
+	'api',
 ], function (categorySelector, taskbar, api) {
 	var categoryList = {};
 
@@ -19,28 +21,42 @@ define('composer/categoryList', [
 
 		categoryList.updateTaskbar(postContainer, postData);
 
-		selector = categorySelector.init(listContainer.find('[component="category-selector"]'), {
-			privilege: 'topics:create',
-			states: ['watching', 'tracking', 'notwatching', 'ignoring'],
-			onSelect: function (selectedCategory) {
-				if (postData.hasOwnProperty('cid')) {
-					changeCategory(postContainer, postData, selectedCategory);
-				}
+		selector = categorySelector.init(
+			listContainer.find('[component="category-selector"]'),
+			{
+				privilege: 'topics:create',
+				states: ['watching', 'tracking', 'notwatching', 'ignoring'],
+				onSelect: function (selectedCategory) {
+					if (postData.hasOwnProperty('cid')) {
+						changeCategory(postContainer, postData, selectedCategory);
+					}
+				},
 			},
-		});
+		);
 		if (!selector) {
 			return;
 		}
 		if (postData.cid && postData.category) {
-			selector.selectedCategory = { cid: postData.cid, name: postData.category.name };
+			selector.selectedCategory = {
+				cid: postData.cid,
+				name: postData.category.name,
+			};
 		} else if (ajaxify.data.template.compose && ajaxify.data.selectedCategory) {
 			// separate composer route
-			selector.selectedCategory = { cid: ajaxify.data.cid, name: ajaxify.data.selectedCategory };
+			selector.selectedCategory = {
+				cid: ajaxify.data.cid,
+				name: ajaxify.data.selectedCategory,
+			};
 		}
 
 		// this is the mobile category selector
-		postContainer.find('.category-name')
-			.translateHtml(selector.selectedCategory ? selector.selectedCategory.name : '[[modules:composer.select-category]]')
+		postContainer
+			.find('.category-name')
+			.translateHtml(
+				selector.selectedCategory
+					? selector.selectedCategory.name
+					: '[[modules:composer.select-category]]',
+			)
 			.on('click', function () {
 				categorySelector.modal({
 					privilege: 'topics:create',
@@ -61,7 +77,12 @@ define('composer/categoryList', [
 	};
 
 	function toggleDropDirection(postContainer) {
-		postContainer.find('.category-list-container [component="category-selector"]').toggleClass('dropup', postContainer.outerHeight() < $(window).height() / 2);
+		postContainer
+			.find('.category-list-container [component="category-selector"]')
+			.toggleClass(
+				'dropup',
+				postContainer.outerHeight() < $(window).height() / 2,
+			);
 	}
 
 	categoryList.getSelectedCid = function () {
@@ -94,12 +115,25 @@ define('composer/categoryList', [
 
 	async function changeCategory(postContainer, postData, selectedCategory) {
 		postData.cid = selectedCategory.cid;
-		const categoryData = await window.fetch(`${config.relative_path}/api/category/${encodeURIComponent(selectedCategory.cid)}`).then(r => r.json());
+		const categoryData = await window
+			.fetch(
+				`${config.relative_path}/api/category/${encodeURIComponent(selectedCategory.cid)}`,
+			)
+			.then((r) => r.json());
 		postData.category = categoryData;
 		updateTaskbarByCategory(postContainer, categoryData);
-		require(['composer/scheduler', 'composer/tags', 'composer/post-queue'], function (scheduler, tags, postQueue) {
+		require([
+			'composer/scheduler',
+			'composer/tags',
+			'composer/post-queue',
+		], function (scheduler, tags, postQueue) {
 			scheduler.onChangeCategory(categoryData);
-			tags.onChangeCategory(postContainer, postData, selectedCategory.cid, categoryData);
+			tags.onChangeCategory(
+				postContainer,
+				postData,
+				selectedCategory.cid,
+				categoryData,
+			);
 			postQueue.onChangeCategory(postContainer, postData);
 
 			$(window).trigger('action:composer.changeCategory', {

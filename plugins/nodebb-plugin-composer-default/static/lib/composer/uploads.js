@@ -20,19 +20,29 @@ define('composer/uploads', [
 
 		addChangeHandlers(post_uuid);
 		addTopicThumbHandlers(post_uuid);
-		translator.translate('[[modules:composer.uploading, ' + 0 + '%]]', function (translated) {
-			uploadingText = translated;
-		});
+		translator.translate(
+			'[[modules:composer.uploading, ' + 0 + '%]]',
+			function (translated) {
+				uploadingText = translated;
+			},
+		);
 	};
 
 	function addChangeHandlers(post_uuid) {
 		var postContainer = $('.composer[data-uuid="' + post_uuid + '"]');
 
 		postContainer.find('#files').on('change', function (e) {
-			var files = (e.target || {}).files ||
-				($(this).val() ? [{ name: $(this).val(), type: utils.fileMimeType($(this).val()) }] : null);
+			var files =
+				(e.target || {}).files ||
+				($(this).val()
+					? [{ name: $(this).val(), type: utils.fileMimeType($(this).val()) }]
+					: null);
 			if (files) {
-				uploadContentFiles({ files: files, post_uuid: post_uuid, route: '/api/post/upload' });
+				uploadContentFiles({
+					files: files,
+					post_uuid: post_uuid,
+					route: '/api/post/upload',
+				});
 			}
 		});
 	}
@@ -47,19 +57,23 @@ define('composer/uploads', [
 			e.preventDefault();
 		});
 
-		postContainer.on('paste change keypress', 'input#topic-thumb-url', function () {
-			var urlEl = $(this);
-			setTimeout(function () {
-				var url = urlEl.val();
-				if (url) {
-					postContainer.find('.topic-thumb-clear-btn').removeClass('hide');
-				} else {
-					resetInputFile(postContainer.find('input#topic-thumb-file'));
-					postContainer.find('.topic-thumb-clear-btn').addClass('hide');
-				}
-				postContainer.find('img.topic-thumb-preview').attr('src', url);
-			}, 100);
-		});
+		postContainer.on(
+			'paste change keypress',
+			'input#topic-thumb-url',
+			function () {
+				var urlEl = $(this);
+				setTimeout(function () {
+					var url = urlEl.val();
+					if (url) {
+						postContainer.find('.topic-thumb-clear-btn').removeClass('hide');
+					} else {
+						resetInputFile(postContainer.find('input#topic-thumb-file'));
+						postContainer.find('.topic-thumb-clear-btn').addClass('hide');
+					}
+					postContainer.find('img.topic-thumb-preview').attr('src', url);
+				}, 100);
+			},
+		);
 	}
 
 	function resetInputFile($el) {
@@ -124,7 +138,10 @@ define('composer/uploads', [
 		var isImage = false;
 		for (i = 0; i < files.length; ++i) {
 			isImage = files[i].type.match(/image./);
-			if ((isImage && !app.user.privileges['upload:post:image']) || (!isImage && !app.user.privileges['upload:post:file'])) {
+			if (
+				(isImage && !app.user.privileges['upload:post:image']) ||
+				(!isImage && !app.user.privileges['upload:post:file'])
+			) {
 				return alerts.error('[[error:no-privileges]]');
 			}
 		}
@@ -134,14 +151,31 @@ define('composer/uploads', [
 		for (i = 0; i < files.length; ++i) {
 			// The filename map has datetime and iterator prepended so that they can be properly tracked even if the
 			// filenames are identical.
-			filenameMapping.push(i + '_' + Date.now() + '_' + (params.fileNames ? params.fileNames[i] : files[i].name));
+			filenameMapping.push(
+				i +
+					'_' +
+					Date.now() +
+					'_' +
+					(params.fileNames ? params.fileNames[i] : files[i].name),
+			);
 			isImage = files[i].type.match(/image./);
 
-			if (!app.user.isAdmin && files[i].size > parseInt(config.maximumFileSize, 10) * 1024) {
+			if (
+				!app.user.isAdmin &&
+				files[i].size > parseInt(config.maximumFileSize, 10) * 1024
+			) {
 				uploadForm[0].reset();
-				return alerts.error('[[error:file-too-big, ' + config.maximumFileSize + ']]');
+				return alerts.error(
+					'[[error:file-too-big, ' + config.maximumFileSize + ']]',
+				);
 			}
-			filesText += (isImage ? '!' : '') + '[' + filenameMapping[i] + '](' + uploadingText + ') ';
+			filesText +=
+				(isImage ? '!' : '') +
+				'[' +
+				filenameMapping[i] +
+				'](' +
+				uploadingText +
+				') ';
 		}
 
 		const cursorPosition = textarea.getCursorPosition();
@@ -172,7 +206,9 @@ define('composer/uploads', [
 				}
 				var current = textarea.val();
 				var re = new RegExp(escapeRegExp(filename) + ']\\([^)]+\\)', 'g');
-				textarea.val(current.replace(re, (newFilename || filename) + '](' + text + ')'));
+				textarea.val(
+					current.replace(re, (newFilename || filename) + '](' + text + ')'),
+				);
 
 				$(window).trigger('action:composer.uploadUpdate', {
 					post_uuid: post_uuid,
@@ -208,14 +244,17 @@ define('composer/uploads', [
 				},
 
 				uploadProgress: function (event, position, total, percent) {
-					translator.translate('[[modules:composer.uploading, ' + percent + '%]]', function (translated) {
-						if (doneUploading) {
-							return;
-						}
-						for (var i = 0; i < files.length; ++i) {
-							updateTextArea(filenameMapping[i], translated);
-						}
-					});
+					translator.translate(
+						'[[modules:composer.uploading, ' + percent + '%]]',
+						function (translated) {
+							if (doneUploading) {
+								return;
+							}
+							for (var i = 0; i < files.length; ++i) {
+								updateTextArea(filenameMapping[i], translated);
+							}
+						},
+					);
 				},
 
 				success: function (res) {
@@ -223,13 +262,19 @@ define('composer/uploads', [
 					doneUploading = true;
 					if (uploads && uploads.length) {
 						for (var i = 0; i < uploads.length; ++i) {
-							uploads[i].filename = filenameMapping[i].replace(/^\d+_\d{13}_/, '');
+							uploads[i].filename = filenameMapping[i].replace(
+								/^\d+_\d{13}_/,
+								'',
+							);
 							uploads[i].isImage = /image./.test(files[i].type);
 							updateTextArea(filenameMapping[i], uploads[i].url, true);
 						}
 					}
 					preview.render(postContainer);
-					textarea.prop('selectionEnd', cursorPosition + textarea.val().length - textLen);
+					textarea.prop(
+						'selectionEnd',
+						cursorPosition + textarea.val().length - textLen,
+					);
 					textarea.focus();
 					postContainer.find('[data-action="post"]').prop('disabled', false);
 					$(window).trigger('action:composer.upload', {
@@ -251,8 +296,10 @@ define('composer/uploads', [
 	}
 
 	function onUploadError(xhr, post_uuid) {
-		var msg = (xhr.responseJSON &&
-			(xhr.responseJSON.error || (xhr.responseJSON.status && xhr.responseJSON.status.message))) ||
+		var msg =
+			(xhr.responseJSON &&
+				(xhr.responseJSON.error ||
+					(xhr.responseJSON.status && xhr.responseJSON.status.message))) ||
 			'[[error:parse-error]]';
 
 		if (xhr && xhr.status === 413) {
@@ -268,4 +315,3 @@ define('composer/uploads', [
 
 	return uploads;
 });
-

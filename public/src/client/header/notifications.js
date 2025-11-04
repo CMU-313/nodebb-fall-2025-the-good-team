@@ -4,12 +4,17 @@ define('forum/header/notifications', function () {
 	const notifications = {};
 
 	notifications.prepareDOM = function () {
-		const notifTrigger = $('[component="notifications"] [data-bs-toggle="dropdown"]');
+		const notifTrigger = $(
+			'[component="notifications"] [data-bs-toggle="dropdown"]',
+		);
 
 		notifTrigger.on('show.bs.dropdown', async (ev) => {
 			const notifications = await app.require('notifications');
 			const triggerEl = $(ev.target);
-			notifications.loadNotifications(triggerEl, triggerEl.parent().find('[component="notifications/list"]'));
+			notifications.loadNotifications(
+				triggerEl,
+				triggerEl.parent().find('[component="notifications/list"]'),
+			);
 		});
 
 		notifTrigger.each((index, el) => {
@@ -17,7 +22,10 @@ define('forum/header/notifications', function () {
 			const dropdownEl = triggerEl.parent().find('.dropdown-menu');
 			if (dropdownEl.hasClass('show')) {
 				app.require('notifications').then((notifications) => {
-					notifications.loadNotifications(triggerEl, dropdownEl.find('[component="notifications/list"]'));
+					notifications.loadNotifications(
+						triggerEl,
+						dropdownEl.find('[component="notifications/list"]'),
+					);
 				});
 			}
 		});

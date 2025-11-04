@@ -1,8 +1,9 @@
 'use strict';
 
-define('composer/autocomplete', [
-	'composer/preview', 'autocomplete',
-], function (preview, Autocomplete) {
+define('composer/autocomplete', ['composer/preview', 'autocomplete'], function (
+	preview,
+	Autocomplete,
+) {
 	var autocomplete = {
 		_active: {},
 	};

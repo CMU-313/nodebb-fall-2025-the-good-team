@@ -14,7 +14,14 @@ Sockets.push = async function (socket, pid) {
 		throw new Error('[[error:no-privileges]]');
 	}
 
-	const postData = await posts.getPostFields(pid, ['content', 'sourceContent', 'tid', 'uid', 'handle', 'timestamp']);
+	const postData = await posts.getPostFields(pid, [
+		'content',
+		'sourceContent',
+		'tid',
+		'uid',
+		'handle',
+		'timestamp',
+	]);
 	if (!postData && !postData.content) {
 		throw new Error('[[error:invalid-pid]]');
 	}
@@ -32,7 +39,9 @@ Sockets.push = async function (socket, pid) {
 	const result = await plugins.hooks.fire('filter:composer.push', {
 		pid: pid,
 		uid: postData.uid,
-		handle: parseInt(meta.config.allowGuestHandles, 10) ? postData.handle : undefined,
+		handle: parseInt(meta.config.allowGuestHandles, 10)
+			? postData.handle
+			: undefined,
 		body: postData.sourceContent || postData.content,
 		title: topic.title,
 		thumb: topic.thumb,
@@ -59,8 +68,13 @@ Sockets.renderHelp = async function () {
 	}
 
 	const parsed = await plugins.hooks.fire('filter:parse.raw', helpText);
-	if (meta.config['composer:allowPluginHelp'] && plugins.hooks.hasListeners('filter:composer.help')) {
-		return await plugins.hooks.fire('filter:composer.help', parsed) || helpText;
+	if (
+		meta.config['composer:allowPluginHelp'] &&
+		plugins.hooks.hasListeners('filter:composer.help')
+	) {
+		return (
+			(await plugins.hooks.fire('filter:composer.help', parsed)) || helpText
+		);
 	}
 	return helpText;
 };

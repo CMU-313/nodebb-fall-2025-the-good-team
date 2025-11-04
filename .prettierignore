@@ -1,0 +1,17 @@
+# Ignore artifacts and build outputs
+/dist
+/build
+/coverage
+
+# Ignore package manager directories
+/node_modules
+
+# Ignore configuration files where formatting is less helpful
+package.json
+package-lock.json
+yarn.lock
+
+# Ignore common files
+.vscode/
+.idea/
+.git/

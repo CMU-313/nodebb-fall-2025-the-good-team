@@ -18,13 +18,15 @@ Chart.register(
 	LineElement,
 	PointElement,
 	Tooltip,
-	Filler
+	Filler,
 );
 
 export function init() {
 	categorySelector.init($('[component="category-selector"]'), {
 		onSelect: function (selectedCategory) {
-			ajaxify.go('admin/manage/categories/' + selectedCategory.cid + '/analytics');
+			ajaxify.go(
+				'admin/manage/categories/' + selectedCategory.cid + '/analytics',
+			);
 		},
 		showLinks: true,
 		template: 'admin/partials/category/selector-dropdown-right',
@@ -147,4 +149,3 @@ export function init() {
 		options: chartOpts,
 	});
 }
-

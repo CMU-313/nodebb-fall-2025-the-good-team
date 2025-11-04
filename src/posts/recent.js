@@ -20,22 +20,35 @@ module.exports = function (Posts) {
 		}
 
 		const count = parseInt(stop, 10) === -1 ? stop : stop - start + 1;
-		const pids = await db.getSortedSetRevRangeByScore('posts:pid', start, count, '+inf', min);
+		const pids = await db.getSortedSetRevRangeByScore(
+			'posts:pid',
+			start,
+			count,
+			'+inf',
+			min,
+		);
 
-		// grab post data 
+		// grab post data
 		const postData = await Posts.getPostsFields(pids, ['uid', 'visibility']);
 
-		// is current user an instructor? 
+		// is current user an instructor?
 		const isInstructor = await groups.isMember(uid, 'instructors');
 		// Filter the post IDs based on the visibility rules
 		const filteredPids = postData
-			.filter((post) => { 
+			.filter((post) => {
 				// Check for valid post and visibility data
 				if (!post || !post.visibility) {
 					return false;
 				}
 
-				console.log('Checking post ID:', post.pid, 'Visibility:', post.visibility, 'Is current user an instructor?', isInstructor); 
+				console.log(
+					'Checking post ID:',
+					post.pid,
+					'Visibility:',
+					post.visibility,
+					'Is current user an instructor?',
+					isInstructor,
+				);
 
 				// A user can see a post if...
 				// 1. It's visible to everyone
@@ -61,17 +74,25 @@ module.exports = function (Posts) {
 				// Otherwise, the post is not visible
 				return false;
 			})
-			.map(post => post.pid);
+			.map((post) => post.pid);
 
 		// priveleges check
-		const finalPids = await privileges.posts.filter('topics:read', filteredPids, uid);
+		const finalPids = await privileges.posts.filter(
+			'topics:read',
+			filteredPids,
+			uid,
+		);
 
-		return await Posts.getPostSummaryByPids(finalPids, uid, { stripTags: true });
+		return await Posts.getPostSummaryByPids(finalPids, uid, {
+			stripTags: true,
+		});
 	};
 
 	Posts.getRecentPosterUids = async function (start, stop) {
 		const pids = await db.getSortedSetRevRange('posts:pid', start, stop);
 		const postData = await Posts.getPostsFields(pids, ['uid']);
-		return _.uniq(postData.map(p => p && p.uid).filter(uid => parseInt(uid, 10)));
+		return _.uniq(
+			postData.map((p) => p && p.uid).filter((uid) => parseInt(uid, 10)),
+		);
 	};
 };

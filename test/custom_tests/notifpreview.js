@@ -10,7 +10,7 @@ function generateNotificationSnippet(rawContent) {
 	const strippedContent = rawContent.replace(/<[^>]*>/g, '').trim();
 
 	// 2. Split into words based on whitespace
-	const words = strippedContent.split(/\s+/).filter(word => word.length > 0);
+	const words = strippedContent.split(/\s+/).filter((word) => word.length > 0);
 
 	const MAX_WORDS = 4;
 	let snippet = words.slice(0, MAX_WORDS).join(' ');
@@ -28,24 +28,31 @@ function generateNotificationSnippet(rawContent) {
 
 // --- UNIT TEST SUITE (Mocha Structure) ---
 describe('Unit Test: Notification Snippet Generation Logic', () => {
-
 	const USERNAME = '@testuser';
 
 	it('1. Long content (>4 words) is truncated and includes ellipsis', function () {
 		const longContent = `${USERNAME} this post is definitely longer than four words.`;
 		const expectedSnippet = `${USERNAME} this post is...`;
-        
+
 		const result = generateNotificationSnippet(longContent);
-		assert.strictEqual(result, expectedSnippet, 'Should truncate to 4 words and add "..."');
+		assert.strictEqual(
+			result,
+			expectedSnippet,
+			'Should truncate to 4 words and add "..."',
+		);
 	});
 
 	it('2. Content with exactly 4 words is used fully without ellipsis', function () {
 		// FIX: Reduced to exactly 4 words to match test description and expected output.
-		const shortContent = `${USERNAME} short content test.`; 
+		const shortContent = `${USERNAME} short content test.`;
 		const expectedSnippet = shortContent;
-        
+
 		const result = generateNotificationSnippet(shortContent);
-		assert.strictEqual(result, expectedSnippet, 'Should use all 4 words with no "..."');
+		assert.strictEqual(
+			result,
+			expectedSnippet,
+			'Should use all 4 words with no "..."',
+		);
 	});
 
 	it('3. HTML tags are stripped before truncation and ellipsis is added', function () {
@@ -56,19 +63,31 @@ describe('Unit Test: Notification Snippet Generation Logic', () => {
 		const expectedSnippet = `${USERNAME} important message check...`;
 
 		const result = generateNotificationSnippet(htmlContent);
-		assert.strictEqual(result, expectedSnippet, 'Should strip HTML and then truncate with "..."');
+		assert.strictEqual(
+			result,
+			expectedSnippet,
+			'Should strip HTML and then truncate with "..."',
+		);
 	});
 
 	it('4. Content with less than 4 words is used fully without ellipsis', function () {
 		const veryShortContent = `Hey ${USERNAME}!`;
 		const expectedSnippet = veryShortContent;
-        
+
 		const result = generateNotificationSnippet(veryShortContent);
-		assert.strictEqual(result, expectedSnippet, 'Should keep content intact if under 4 words');
+		assert.strictEqual(
+			result,
+			expectedSnippet,
+			'Should keep content intact if under 4 words',
+		);
 	});
 
 	it('5. Empty content returns an empty string', function () {
 		const result = generateNotificationSnippet('');
-		assert.strictEqual(result, '', 'Should return empty string for empty input');
+		assert.strictEqual(
+			result,
+			'',
+			'Should return empty string for empty input',
+		);
 	});
 });
