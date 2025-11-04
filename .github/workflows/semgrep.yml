@@ -1,0 +1,22 @@
+name: semgrep
+on:
+  pull_request:
+    branches: [ "main" ]
+jobs:
+  run-semgrep:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.x"
+      - run: python -m pip install --upgrade pip semgrep
+      - name: Run Semgrep (p/ci)
+        run: |
+          mkdir -p analysis/semgrep
+          semgrep --config=p/ci --json --timeout=120 . > analysis/semgrep/REPORT.json || true
+      - name: Upload Semgrep report
+        uses: actions/upload-artifact@v4
+        with:
+          name: semgrep-report
+          path: analysis/semgrep/REPORT.json
