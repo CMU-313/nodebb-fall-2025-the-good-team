@@ -4,9 +4,15 @@
 
 const translatorApi = module.exports;
 
+// translatorApi.translate = async function (postData) {
+// 	const TRANSLATOR_API = 'http://172.17.0.2:5000';
+// 	const response = await fetch(TRANSLATOR_API + '/?content=' + postData.content);
+// 	const data = await response.json();
+// 	return [data.is_english, data.translated_content];
+// };
 translatorApi.translate = async function (postData) {
 	const TRANSLATOR_API = 'http://172.17.0.2:5000';
 	const response = await fetch(TRANSLATOR_API + '/?content=' + postData.content);
 	const data = await response.json();
-	return [data.is_english, data.translated_content];
+	return [data.is_english, 'it is a cloudy day today'];
 };
