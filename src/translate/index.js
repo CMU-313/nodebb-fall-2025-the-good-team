@@ -1,0 +1,16 @@
+
+/* eslint-disable strict */
+//var request = require('request');
+
+const translatorApi = module.exports;
+
+
+// IMPORTANT: Make sure the translator API is running on the specified IP and port
+// given from the microservice.
+// Use ollma serve and then ollama pull lamma3 before running the microservice.
+translatorApi.translate = async function (postData) {
+	const TRANSLATOR_API = 'http://172.17.0.2:5000';
+	const response = await fetch(TRANSLATOR_API + '/?content=' + postData.content);
+	const data = await response.json();
+	return [data.is_english, data.translated_content];
+};
