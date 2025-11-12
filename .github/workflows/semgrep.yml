@@ -1,0 +1,45 @@
+name: Semgrep (NodeBB)
+
+on:
+  pull_request:
+  push:
+    branches: [main]
+
+jobs:
+  semgrep:
+    runs-on: ubuntu-latest
+    permissions:
+      contents: read
+      security-events: write
+      actions: read
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+        with: { fetch-depth: 0 }
+
+      # 🔁 Full repository scan (not diff-aware)
+      - name: Semgrep (full repo scan)
+        uses: returntocorp/semgrep-action@v1
+        with:
+          entryPoint: semgrep
+          args: scan --config .semgrep/rules.yml --error --timeout 120
+
+      # (optional) keep your artifact step as-is
+      - name: Save text/json reports (for PR evidence)
+        if: always()
+        run: |
+          mkdir -p artifacts
+          docker run --rm -v "$PWD":/src semgrep/semgrep:latest \
+            semgrep scan --config .semgrep/rules.yml \
+            --severity WARNING --severity ERROR > artifacts/semgrep.txt || true
+          docker run --rm -v "$PWD":/src semgrep/semgrep:latest \
+            semgrep scan --config .semgrep/rules.yml \
+            --severity WARNING --severity ERROR --json > artifacts/semgrep.json || true
+
+      - name: Upload artifacts
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: semgrep-output
+          path: artifacts/
